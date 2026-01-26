@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (C) 2024 The LineageOS Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<com.android.launcher3.allapps.HiddenAppsContainerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/hidden_apps_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:id="@+id/hidden_apps_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Header with back button and title -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="@dimen/dynamic_grid_edge_margin"
+            android:paddingTop="@dimen/all_apps_header_top_padding"
+            android:paddingBottom="16dp">
+
+            <ImageButton
+                android:id="@+id/hidden_apps_back_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/hidden_apps_back_description"
+                android:src="@drawable/ic_chevron_left_rounded_700"
+                tools:ignore="UseAppTint" />
+
+            <TextView
+                android:id="@+id/hidden_apps_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/hidden_apps_title"
+                android:textAppearance="@style/TextTitle"
+                android:textSize="24sp" />
+
+        </LinearLayout>
+
+        <!-- Hidden apps RecyclerView -->
+        <com.android.launcher3.allapps.AllAppsRecyclerView
+            android:id="@+id/hidden_apps_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:descendantFocusability="afterDescendants" />
+
+        <!-- Empty state -->
+        <LinearLayout
+            android:id="@+id/hidden_apps_empty"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:alpha="0.5"
+                android:src="@drawable/ic_visibility_filled"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/hidden_apps_empty"
+                android:textAppearance="@style/TextTitle"
+                android:textSize="16sp"
+                android:alpha="0.5" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.android.launcher3.allapps.HiddenAppsContainerView>

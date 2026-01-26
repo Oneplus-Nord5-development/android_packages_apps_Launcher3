@@ -60,4 +60,14 @@
     <!-- App suggestions -->
     <string name="pref_suggestions_title">Suggestions</string>
     <string name="pref_suggestions_summary">For app drawer &amp; home screen suggestions</string>
+
+    <!-- Hidden apps drawer -->
+    <string name="hidden_apps_tab">Hidden</string>
+    <string name="hidden_apps_title">Hidden Apps</string>
+    <string name="hidden_apps_back_description">Go back</string>
+    <string name="hidden_apps_auth_title">Hidden Apps</string>
+    <string name="hidden_apps_auth_subtitle">Authenticate to view your hidden apps</string>
+    <string name="hidden_apps_unlock">Unlock</string>
+    <string name="hidden_apps_empty">No hidden apps</string>
+    <string name="hidden_apps_empty_subtitle">Hide apps using the Hidden &amp; Protected apps settings</string>
 </resources>

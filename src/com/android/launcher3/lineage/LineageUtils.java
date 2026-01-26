@@ -14,34 +14,58 @@ import com.android.launcher3.R;
 public class LineageUtils {
 
     /**
-     * Shows authentication screen to confirm credentials (pin, pattern or password) for the current
+     * Shows authentication screen to confirm credentials (pin, pattern or password)
+     * for the current
      * user of the device.
      *
-     * @param context The {@code Context} used to get {@code KeyguardManager} service
-     * @param title the {@code String} which will be shown as the pompt title
-     * @param successRunnable The {@code Runnable} which will be executed if the user does not setup
+     * @param context         The {@code Context} used to get
+     *                        {@code KeyguardManager} service
+     * @param title           the {@code String} which will be shown as the pompt
+     *                        title
+     * @param successRunnable The {@code Runnable} which will be executed if the
+     *                        user does not setup
      *                        device security or if lock screen is unlocked
      */
     public static void showLockScreen(Context context, String title, Runnable successRunnable) {
-        if (hasSecureKeyguard(context)) {
-            final BiometricPrompt.AuthenticationCallback authenticationCallback =
-                    new BiometricPrompt.AuthenticationCallback() {
-                        @Override
-                        public void onAuthenticationSucceeded(
-                                    BiometricPrompt.AuthenticationResult result) {
-                            successRunnable.run();
-                        }
+        showLockScreen(context, title, successRunnable, null);
+    }
 
-                        @Override
-                        public void onAuthenticationError(int errorCode, CharSequence errString) {
-                            //Do nothing
-                        }
+    /**
+     * Shows authentication screen to confirm credentials (pin, pattern or password)
+     * for the current
+     * user of the device.
+     *
+     * @param context         The {@code Context} used to get
+     *                        {@code KeyguardManager} service
+     * @param title           the {@code String} which will be shown as the prompt
+     *                        title
+     * @param successRunnable The {@code Runnable} which will be executed if
+     *                        authentication succeeds
+     * @param failureRunnable The {@code Runnable} which will be executed if
+     *                        authentication fails/cancels
+     */
+    public static void showLockScreen(Context context, String title, Runnable successRunnable,
+            Runnable failureRunnable) {
+        if (hasSecureKeyguard(context)) {
+            final BiometricPrompt.AuthenticationCallback authenticationCallback = new BiometricPrompt.AuthenticationCallback() {
+                @Override
+                public void onAuthenticationSucceeded(
+                        BiometricPrompt.AuthenticationResult result) {
+                    successRunnable.run();
+                }
+
+                @Override
+                public void onAuthenticationError(int errorCode, CharSequence errString) {
+                    if (failureRunnable != null) {
+                        failureRunnable.run();
+                    }
+                }
             };
 
             final BiometricPrompt bp = new BiometricPrompt.Builder(context)
                     .setTitle(title)
                     .setAllowedAuthenticators(Authenticators.BIOMETRIC_STRONG |
-                                              Authenticators.DEVICE_CREDENTIAL)
+                            Authenticators.DEVICE_CREDENTIAL)
                     .build();
 
             final Handler handler = new Handler(Looper.getMainLooper());
@@ -52,7 +76,7 @@ public class LineageUtils {
             // Notify the user a secure keyguard is required for protected apps,
             // but allow to set hidden apps
             Toast.makeText(context, R.string.trust_apps_no_lock_error, Toast.LENGTH_LONG)
-                .show();
+                    .show();
             successRunnable.run();
         }
     }

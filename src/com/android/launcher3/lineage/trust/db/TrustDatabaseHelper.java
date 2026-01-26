@@ -24,6 +24,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TrustDatabaseHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "trust_apps_db";
@@ -79,7 +82,7 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_HIDDEN, 1);
 
             int rows = db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?",
-                    new String[]{KEY_PKGNAME});
+                    new String[] { KEY_PKGNAME });
             if (rows != 1) {
                 // Entry doesn't exist, create a new one
                 db.insertOrThrow(TABLE_NAME, null, values);
@@ -106,7 +109,7 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_PROTECTED, 1);
 
             int rows = db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?",
-                    new String[]{KEY_PKGNAME});
+                    new String[] { KEY_PKGNAME });
             if (rows != 1) {
                 // Entry doesn't exist, create a new one
                 db.insertOrThrow(TABLE_NAME, null, values);
@@ -118,7 +121,6 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
             db.endTransaction();
         }
     }
-
 
     public void removeHiddenApp(@NonNull String packageName) {
         if (!isPackageHidden(packageName)) {
@@ -132,7 +134,7 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
             values.put(KEY_HIDDEN, 0);
 
-            db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?", new String[]{packageName});
+            db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?", new String[] { packageName });
             db.setTransactionSuccessful();
         } catch (Exception e) {
             // Ignored
@@ -153,7 +155,7 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
             values.put(KEY_PROTECTED, 0);
 
-            db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?", new String[]{packageName});
+            db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?", new String[] { packageName });
             db.setTransactionSuccessful();
         } catch (Exception e) {
             // Ignored
@@ -166,7 +168,7 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
         String query = String.format("SELECT * FROM %s WHERE %s = ? AND %s = ?", TABLE_NAME,
                 KEY_PKGNAME, KEY_HIDDEN);
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, new String[]{packageName, String.valueOf(1)});
+        Cursor cursor = db.rawQuery(query, new String[] { packageName, String.valueOf(1) });
         boolean result = false;
         try {
             result = cursor.getCount() != 0;
@@ -185,7 +187,7 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
         String query = String.format("SELECT * FROM %s WHERE %s = ? AND %s = ?", TABLE_NAME,
                 KEY_PKGNAME, KEY_PROTECTED);
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, new String[]{packageName, String.valueOf(1)});
+        Cursor cursor = db.rawQuery(query, new String[] { packageName, String.valueOf(1) });
         boolean result = false;
         try {
             result = cursor.getCount() != 0;
@@ -198,5 +200,55 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
         }
 
         return result;
+    }
+
+    /**
+     * Get all hidden package names.
+     * 
+     * @return List of package names that are marked as hidden
+     */
+    public List<String> getHiddenPackages() {
+        List<String> result = new ArrayList<>();
+        String query = String.format("SELECT %s FROM %s WHERE %s = ?",
+                KEY_PKGNAME, TABLE_NAME, KEY_HIDDEN);
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, new String[] { String.valueOf(1) });
+        try {
+            while (cursor.moveToNext()) {
+                result.add(cursor.getString(0));
+            }
+        } catch (Exception e) {
+            // Ignored
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Check if there are any hidden packages.
+     * 
+     * @return true if at least one package is hidden
+     */
+    public boolean hasHiddenPackages() {
+        String query = String.format("SELECT COUNT(*) FROM %s WHERE %s = ?",
+                TABLE_NAME, KEY_HIDDEN);
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, new String[] { String.valueOf(1) });
+        int count = 0;
+        try {
+            if (cursor.moveToFirst()) {
+                count = cursor.getInt(0);
+            }
+        } catch (Exception e) {
+            // Ignored
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return count > 0;
     }
 }

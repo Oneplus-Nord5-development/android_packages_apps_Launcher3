@@ -20,16 +20,36 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 
 import com.android.launcher3.PagedView;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.workprofile.PersonalWorkPagedView;
 
 /**
- * A {@link PagedView} for showing different views for the personal and work profile respectively
+ * A {@link PagedView} for showing different views for the personal and work
+ * profile respectively
  * in the {@link BaseAllAppsContainerView}.
  */
 public class AllAppsPagedView extends PersonalWorkPagedView {
+
+    /** Listener for hidden apps swipe gesture */
+    public interface OnHiddenAppsSwipeListener {
+        void onHiddenAppsSwipeStarted(float startX);
+
+        void onHiddenAppsSwipeUpdate(float currentX);
+
+        void onHiddenAppsSwipeEnded();
+
+        void onHiddenAppsSwipeCancelled();
+    }
+
+    private OnHiddenAppsSwipeListener mHiddenAppsSwipeListener;
+    private float mDownX;
+    private float mDownY;
+    private boolean mIsHiddenAppsSwipe = false;
+    private static final int SWIPE_START_THRESHOLD = 50;
+    private static final int EDGE_ZONE_WIDTH = 100;
 
     public AllAppsPagedView(Context context) {
         this(context, null);
@@ -41,6 +61,62 @@ public class AllAppsPagedView extends PersonalWorkPagedView {
 
     public AllAppsPagedView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    public void setOnLeftEdgeSwipeListener(OnHiddenAppsSwipeListener listener) {
+        mHiddenAppsSwipeListener = listener;
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mDownX = ev.getX();
+                mDownY = ev.getY();
+                mIsHiddenAppsSwipe = false;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                // Check for hidden apps swipe on page 0 (Personal tab)
+                if (mCurrentPage == 0 && mHiddenAppsSwipeListener != null && !mIsHiddenAppsSwipe) {
+                    float deltaX = ev.getX() - mDownX;
+                    float deltaY = Math.abs(ev.getY() - mDownY);
+                    // Right swipe (finger moving right) from left edge opens hidden apps
+                    boolean isFromLeftEdge = mDownX < EDGE_ZONE_WIDTH;
+                    if (deltaX > SWIPE_START_THRESHOLD && deltaX > deltaY * 2 && isFromLeftEdge) {
+                        mIsHiddenAppsSwipe = true;
+                        mHiddenAppsSwipeListener.onHiddenAppsSwipeStarted(mDownX);
+                        return true;
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                if (mIsHiddenAppsSwipe) {
+                    mIsHiddenAppsSwipe = false;
+                }
+                break;
+        }
+        return super.onInterceptTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        if (mIsHiddenAppsSwipe && mHiddenAppsSwipeListener != null) {
+            switch (ev.getAction()) {
+                case MotionEvent.ACTION_MOVE:
+                    mHiddenAppsSwipeListener.onHiddenAppsSwipeUpdate(ev.getX());
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    mHiddenAppsSwipeListener.onHiddenAppsSwipeEnded();
+                    mIsHiddenAppsSwipe = false;
+                    return true;
+                case MotionEvent.ACTION_CANCEL:
+                    mHiddenAppsSwipeListener.onHiddenAppsSwipeCancelled();
+                    mIsHiddenAppsSwipe = false;
+                    return true;
+            }
+        }
+        return super.onTouchEvent(ev);
     }
 
     @Override
