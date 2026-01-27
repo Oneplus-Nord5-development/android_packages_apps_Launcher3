@@ -38,6 +38,8 @@ public class HiddenAppsFilter extends AppFilter {
 
     @Override
     public boolean shouldShowApp(ComponentName app) {
-        return !mDbHelper.isPackageHidden(app.getPackageName()) && super.shouldShowApp(app);
+        // We want to load hidden apps so they can be shown in the hidden apps drawer.
+        // We will filter them out of the main list in ActivityAllAppsContainerView.
+        return super.shouldShowApp(app);
     }
 }

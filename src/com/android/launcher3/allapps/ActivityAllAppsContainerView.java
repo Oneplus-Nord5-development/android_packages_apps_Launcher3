@@ -686,7 +686,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         if (mUsingTabs) {
             mainRecyclerView = (AllAppsRecyclerView) mViewPager.getChildAt(0);
             workRecyclerView = (AllAppsRecyclerView) mViewPager.getChildAt(1);
-            mAH.get(AdapterHolder.MAIN).setup(mainRecyclerView, mPersonalMatcher);
+            mAH.get(AdapterHolder.MAIN).setup(mainRecyclerView,
+                    mPersonalMatcher.and(mHiddenAppsManager.getVisibleAppsFilter()));
             mAH.get(AdapterHolder.WORK).setup(workRecyclerView, mWorkManager.getItemInfoMatcher());
             workRecyclerView.setId(R.id.apps_list_view_work);
             if (enableExpandingPauseWorkButton()
@@ -740,7 +741,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         } else {
             mainRecyclerView = findViewById(R.id.apps_list_view);
             workRecyclerView = null;
-            mAH.get(AdapterHolder.MAIN).setup(mainRecyclerView, mPersonalMatcher);
+            mAH.get(AdapterHolder.MAIN).setup(mainRecyclerView,
+                    mPersonalMatcher.and(mHiddenAppsManager.getVisibleAppsFilter()));
             mAH.get(AdapterHolder.WORK).mRecyclerView = null;
         }
         setUpCustomRecyclerViewPool(
@@ -907,6 +909,42 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         AdapterHolder hiddenHolder = mAH.get(HIDDEN);
         if (hiddenHolder != null && hiddenHolder.mAppsList != null) {
             hiddenHolder.mAppsList.updateItemFilter(mHiddenAppsManager.getItemInfoMatcher());
+
+            // Update the UI state based on whether there are hidden apps
+            if (mHiddenAppsContainer != null) {
+                // We drag to open, so we should show the list if it has items
+                // But updateItemFilter runs onAppsUpdated which might happen later?
+                // Actually it happens synchronously usually.
+                List<AdapterItem> items = hiddenHolder.mAppsList.getAdapterItems();
+                // Filter items to count real apps (excluding dividers/empty views if any)
+                // AdapterItem usually wraps AppInfo.
+
+                // But updateHiddenApps expects List<AppInfo>.
+                // We can't easily get List<AppInfo> from AdapterItem list without mapping.
+                // But we can check hiddenHolder.mAppsList.getNumFilteredApps()
+                boolean hasApps = hiddenHolder.mAppsList.getNumFilteredApps() > 0;
+
+                // We need to pass a list to updateHiddenApps, or just notify it to check
+                // itself?
+                // updateHiddenApps takes List<AppInfo>.
+                // accessing mHiddenAppsManager.mHiddenPackages is not List<AppInfo>.
+
+                // Let's pass null if empty, or a dummy list if not.
+                // Or better, change updateHiddenApps to take a boolean or count.
+                // For now, let's just use the fact that if getNumFilteredApps > 0 we have apps.
+
+                // Wait, I can't easily construct List<AppInfo> here.
+                // Let's change updateHiddenApps signature? No, let's keep it locally
+                // consistently.
+                // Does HiddenAppsContainerView.updateHiddenApps USE the list content?
+                // No, it just checks null or isEmpty().
+
+                if (hasApps) {
+                    mHiddenAppsContainer.updateHiddenApps(java.util.Collections.singletonList(new AppInfo()));
+                } else {
+                    mHiddenAppsContainer.updateHiddenApps(java.util.Collections.emptyList());
+                }
+            }
         }
     }
 
