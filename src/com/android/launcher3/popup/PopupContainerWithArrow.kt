@@ -80,7 +80,7 @@ private constructor(
     private var deepShortcutContainer: ViewGroup? = null
     private var currentHeight = 0f
 
-    val originalIcon = originalView as BubbleTextView
+    val originalIcon = originalView as? BubbleTextView
 
     var itemDragHandler: PopupItemDragHandler? = null
         private set
@@ -160,19 +160,24 @@ private constructor(
     /** Animates and loads shortcuts on background thread for this popup container */
     private fun loadAppShortcuts(originalItemInfo: ItemInfo) {
         accessibilityPaneTitle = context.getString(R.string.action_deep_shortcut)
-        originalIcon.forceHideDot = true
+        originalIcon?.forceHideDot = true
+        if (originalView is com.android.launcher3.folder.FolderIcon) {
+            originalView.setForceHideDot(true)
+        }
         // All views are added. Animate layout from now on.
         layoutTransition = LayoutTransition()
-        // Load the shortcuts on a background thread and update the container as it animates.
-        Executors.MODEL_EXECUTOR.handler.postAtFrontOfQueue(
-            PopupPopulator.createUpdateRunnable(
-                mActivityContext,
-                originalItemInfo,
-                Handler(Looper.getMainLooper()),
-                this,
-                deepShortcuts,
+        if (originalItemInfo.targetComponent != null && deepShortcuts.isNotEmpty()) {
+            // Load the shortcuts on a background thread and update the container as it animates.
+            Executors.MODEL_EXECUTOR.handler.postAtFrontOfQueue(
+                PopupPopulator.createUpdateRunnable(
+                    mActivityContext,
+                    originalItemInfo,
+                    Handler(Looper.getMainLooper()),
+                    this,
+                    deepShortcuts,
+                )
             )
-        )
+        }
     }
 
     /**
@@ -320,7 +325,7 @@ private constructor(
 
     override fun getTargetObjectLocation(outPos: Rect) {
         super.getTargetObjectLocation(outPos)
-        outPos.bottom = outPos.top + (originalIcon.icon?.bounds?.height() ?: originalView.height)
+        outPos.bottom = outPos.top + (originalIcon?.icon?.bounds?.height() ?: originalView.height)
     }
 
     private fun updateHiddenShortcuts() {
@@ -393,11 +398,11 @@ private constructor(
                 }
                 if (mIsAboveIcon) {
                     // Hide only the icon, keep the text visible.
-                    originalIcon.setIconVisible(false)
-                    originalIcon.visibility = VISIBLE
+                    originalIcon?.setIconVisible(false)
+                    originalView.visibility = VISIBLE
                 } else {
                     // Hide both the icon and text.
-                    originalIcon.visibility = INVISIBLE
+                    originalView.visibility = INVISIBLE
                 }
             }
 
@@ -405,18 +410,21 @@ private constructor(
                 if (!updateIconUi) {
                     return
                 }
-                originalIcon.setIconVisible(true)
+                originalIcon?.setIconVisible(true)
                 if (dragStarted) {
                     // Make sure we keep the original icon hidden while it is being dragged.
-                    originalIcon.visibility = INVISIBLE
+                    originalView.visibility = INVISIBLE
                 } else {
                     // TODO: add WW logging if want to add logging for long press on popup
                     //  container.
                     //  mLauncher.getUserEventDispatcher().logDeepShortcutsOpen(mOriginalIcon);
                     if (!mIsAboveIcon) {
                         // Show the icon but keep the text hidden.
-                        originalIcon.visibility = VISIBLE
-                        originalIcon.setTextVisibility(false)
+                        originalView.visibility = VISIBLE
+                        originalIcon?.setTextVisibility(false)
+                        if (originalView is com.android.launcher3.folder.FolderIcon) {
+                            originalView.setTextVisible(false)
+                        }
                     }
                 }
             }
@@ -425,17 +433,24 @@ private constructor(
 
     override fun onCreateCloseAnimation(anim: AnimatorSet) {
         // Animate original icon's text back in.
-        anim.play(originalIcon.createTextAlphaAnimator(true /* fadeIn */))
-        originalIcon.forceHideDot = false
+        originalIcon?.createTextAlphaAnimator(true /* fadeIn */)?.let { anim.play(it) }
+        originalIcon?.forceHideDot = false
+        if (originalView is com.android.launcher3.folder.FolderIcon) {
+            originalView.setForceHideDot(false)
+        }
     }
 
     override fun closeComplete() {
         super.closeComplete()
         mActivityContext?.getDragController<DragController<*>>()?.removeDragListener(this)
         val openPopup = getOpen<T>(mActivityContext)
-        if (openPopup == null || openPopup.originalView !== originalIcon) {
-            originalIcon.setTextVisibility(originalIcon.shouldTextBeVisible())
-            originalIcon.forceHideDot = false
+        if (openPopup == null || openPopup.originalView !== originalView) {
+            originalIcon?.setTextVisibility(originalIcon.shouldTextBeVisible())
+            originalIcon?.forceHideDot = false
+            if (originalView is com.android.launcher3.folder.FolderIcon) {
+                originalView.setTextVisible(true)
+                originalView.setForceHideDot(false)
+            }
         }
     }
 
@@ -445,7 +460,7 @@ private constructor(
         /** Returns true if we can show the container. */
         @Deprecated("Left here since some dependent projects are using this method")
         fun canShow(icon: View?, item: ItemInfo?): Boolean {
-            return icon is BubbleTextView && ShortcutUtil.supportsShortcuts(item)
+            return (icon is BubbleTextView || icon is com.android.launcher3.folder.FolderIcon || icon is com.android.launcher3.folder.EnlargedFolderView) && ShortcutUtil.supportsShortcuts(item)
         }
 
         /**

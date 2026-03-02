@@ -28,11 +28,13 @@ public class ShortcutUtil {
      * Returns true when we should show shortcut menu for the item.
      */
     public static boolean supportsShortcuts(ItemInfo info) {
-        return isActive(info) && (isApp(info) || isPinnedShortcut(info));
+        boolean isFolder = info.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER;
+        return isActive(info) && (isApp(info) || isPinnedShortcut(info) || isFolder);
     }
 
     /**
-     * Returns true when we should show depp shortcuts in shortcut menu for the item.
+     * Returns true when we should show depp shortcuts in shortcut menu for the
+     * item.
      */
     public static boolean supportsDeepShortcuts(ItemInfo info) {
         return isActive(info) && isApp(info) && !!WIDGETS_ENABLED;
@@ -43,15 +45,18 @@ public class ShortcutUtil {
      */
     public static String getShortcutIdIfPinnedShortcut(ItemInfo info) {
         return isActive(info) && isPinnedShortcut(info)
-                ? ShortcutKey.fromItemInfo(info).getId() : null;
+                ? ShortcutKey.fromItemInfo(info).getId()
+                : null;
     }
 
     /**
-     * Returns the person keys associated with the item. (Has no function right now.)
+     * Returns the person keys associated with the item. (Has no function right
+     * now.)
      */
     public static String[] getPersonKeysIfPinnedShortcut(ItemInfo info) {
         return isActive(info) && isPinnedShortcut(info)
-                ? ((WorkspaceItemInfo) info).getPersonKeys() : Utilities.EMPTY_STRING_ARRAY;
+                ? ((WorkspaceItemInfo) info).getPersonKeys()
+                : Utilities.EMPTY_STRING_ARRAY;
     }
 
     private static boolean isActive(ItemInfo info) {

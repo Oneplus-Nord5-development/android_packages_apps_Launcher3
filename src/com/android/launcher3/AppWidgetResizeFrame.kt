@@ -502,7 +502,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                     /*dragView=*/ widgetView,
                     directionVector,
                     /*commit=*/ onDismiss,
-                )
+                ) != null
         ) {
             if (wlp.cellHSpan != spanX || wlp.cellVSpan != spanY) {
                 stateAnnouncer?.announce(launcher.getString(R.string.widget_resized, spanX, spanY))

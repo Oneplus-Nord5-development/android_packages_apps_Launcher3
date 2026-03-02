@@ -46,6 +46,9 @@ public class LauncherPopupLiveUpdateHandler extends PopupLiveUpdateHandler<Launc
     @Override
     public void onWidgetsBound() {
         BubbleTextView originalIcon = mPopupContainerWithArrow.getOriginalIcon();
+        if (originalIcon == null) {
+            return;
+        }
         SystemShortcut widgetInfo = SystemShortcut.WIDGETS.getShortcut(mContext,
                 (ItemInfo) originalIcon.getTag(), originalIcon);
         View widgetsView = getWidgetsView(mPopupContainerWithArrow);
@@ -54,9 +57,7 @@ public class LauncherPopupLiveUpdateHandler extends PopupLiveUpdateHandler<Launc
         }
 
         if (widgetInfo != null && widgetsView == null) {
-            // We didn't have any widgets cached but now there are some, so enable the shortcut.
-            if (mPopupContainerWithArrow.getSystemShortcutContainer()
-                    != mPopupContainerWithArrow) {
+            if (mPopupContainerWithArrow.getSystemShortcutContainer() != mPopupContainerWithArrow) {
                 if (mPopupContainerWithArrow.getWidgetContainer() == null) {
                     mPopupContainerWithArrow.setWidgetContainer(
                             mPopupContainerWithArrow.inflateAndAdd(
@@ -78,8 +79,7 @@ public class LauncherPopupLiveUpdateHandler extends PopupLiveUpdateHandler<Launc
             }
         } else if (widgetInfo == null && widgetsView != null) {
             // No widgets exist, but we previously added the shortcut so remove it.
-            if (mPopupContainerWithArrow.getSystemShortcutContainer()
-                    != mPopupContainerWithArrow
+            if (mPopupContainerWithArrow.getSystemShortcutContainer() != mPopupContainerWithArrow
                     && mPopupContainerWithArrow.getWidgetContainer() != null) {
                 mPopupContainerWithArrow.getWidgetContainer().removeView(widgetsView);
             } else {

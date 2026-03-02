@@ -330,6 +330,16 @@
     <!-- Accessibility announement for unnamed folders -->
     <string name="unnamed_folder">Unnamed folder</string>
 
+    <!-- Enlarged folder -->
+    <!-- Label for action to enlarge a folder on the home screen. [CHAR_LIMIT=30] -->
+    <string name="enlarge_folder_label">Enlarge folder</string>
+    <!-- Label for action to shrink an enlarged folder back to normal size. [CHAR_LIMIT=30] -->
+    <string name="shrink_folder_label">Shrink folder</string>
+    <!-- Error message when there is not enough space to enlarge a folder. [CHAR_LIMIT=50] -->
+    <string name="enlarged_folder_no_space">Not enough space to enlarge folder</string>
+    <!-- Accessibility description for an enlarged folder. [CHAR_LIMIT=none] -->
+    <string name="enlarged_folder_description">Enlarged folder: <xliff:g id="name" example="Games">%1$s</xliff:g>, <xliff:g id="size" example="6">%2$d</xliff:g> apps, page <xliff:g id="page" example="1">%3$d</xliff:g> of <xliff:g id="total" example="2">%4$d</xliff:g></string>
+
     <!-- App pair accessibility -->
     <!-- App pair name -->
     <string name="app_pair_name_format">App pair: <xliff:g id="app1" example="Chrome">%1$s</xliff:g> and <xliff:g id="app2" example="YouTube">%2$s</xliff:g></string>

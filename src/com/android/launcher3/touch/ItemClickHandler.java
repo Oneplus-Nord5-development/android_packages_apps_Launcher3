@@ -91,18 +91,22 @@ public class ItemClickHandler {
     public static final OnClickListener INSTANCE = ItemClickHandler::onClick;
 
     private static void onClick(View v) {
-        // Make sure that rogue clicks don't get through while allapps is launching, or after the
-        // view has detached (it's possible for this to happen if the view is removed mid touch).
-        if (v.getWindowToken() == null) return;
+        if (v.getWindowToken() == null)
+            return;
 
         Launcher launcher = Launcher.getLauncher(v.getContext());
-        if (!launcher.getWorkspace().isFinishedSwitchingState()) return;
+        if (!launcher.getWorkspace().isFinishedSwitchingState())
+            return;
 
         Object tag = v.getTag();
         if (tag instanceof WorkspaceItemInfo) {
             onClickAppShortcut(v, (WorkspaceItemInfo) tag, launcher);
         } else if (tag instanceof FolderInfo) {
-            onClickFolderIcon(v);
+            if (v instanceof FolderIcon) {
+                onClickFolderIcon(v);
+            } else if (v instanceof com.android.launcher3.folder.EnlargedFolderView) {
+                onClickEnlargedFolder(v, (FolderInfo) tag, launcher);
+            }
         } else if (tag instanceof AppPairInfo) {
             onClickAppPairIcon(v);
         } else if (tag instanceof AppInfo) {
@@ -131,7 +135,8 @@ public class ItemClickHandler {
     /**
      * Event handler for a folder icon click.
      *
-     * @param v The view that was clicked. Must be an instance of {@link FolderIcon}.
+     * @param v The view that was clicked. Must be an instance of
+     *          {@link FolderIcon}.
      */
     private static void onClickFolderIcon(View v) {
         Folder folder = ((FolderIcon) v).getFolder();
@@ -144,9 +149,21 @@ public class ItemClickHandler {
     }
 
     /**
+     * Event handler for an enlarged folder view click.
+     * Delegates to {@link Folder#openForEnlargedFolder} which has access to
+     * package-private Folder internals.
+     */
+    private static void onClickEnlargedFolder(View v, FolderInfo folderInfo, Launcher launcher) {
+        Folder.openForEnlargedFolder(launcher, folderInfo, v);
+        StatsLogManager.newInstance(v.getContext()).logger().withItemInfo(folderInfo)
+                .log(LAUNCHER_FOLDER_OPEN);
+    }
+
+    /**
      * Event handler for an app pair icon click.
      *
-     * @param v The view that was clicked. Must be an instance of {@link AppPairIcon}.
+     * @param v The view that was clicked. Must be an instance of
+     *          {@link AppPairIcon}.
      */
     private static void onClickAppPairIcon(View v) {
         Launcher launcher = Launcher.getLauncher(v.getContext());
@@ -156,11 +173,11 @@ public class ItemClickHandler {
                 isApp2Launchable = info.isLaunchable(launcher).getSecond();
         if (!isApp1Launchable || !isApp2Launchable) {
             // App pair is unlaunchable due to screen size.
-            boolean isFoldable = InvariantDeviceProfile.INSTANCE.get(launcher)
-                    .supportedProfiles.stream().anyMatch(dp -> dp.getDeviceProperties().isTwoPanels());
+            boolean isFoldable = InvariantDeviceProfile.INSTANCE.get(launcher).supportedProfiles.stream()
+                    .anyMatch(dp -> dp.getDeviceProperties().isTwoPanels());
             Toast.makeText(launcher, isFoldable
-                            ? R.string.app_pair_needs_unfold
-                            : R.string.app_pair_unlaunchable_at_screen_size,
+                    ? R.string.app_pair_needs_unfold
+                    : R.string.app_pair_unlaunchable_at_screen_size,
                     Toast.LENGTH_SHORT).show();
             return;
         } else if (info.isDisabled()) {
@@ -181,7 +198,8 @@ public class ItemClickHandler {
             }
         }
 
-        // Either the app pair is not disabled, or it is a disabled state that can be handled by
+        // Either the app pair is not disabled, or it is a disabled state that can be
+        // handled by
         // framework directly (e.g. one app is paused), so go ahead and launch.
         launcher.launchAppPair(icon);
     }
@@ -231,8 +249,8 @@ public class ItemClickHandler {
     private static void onClickPendingAppItem(View v, Launcher launcher, String packageName,
             boolean downloadStarted) {
         ItemInfo item = (ItemInfo) v.getTag();
-        CompletableFuture<SessionInfo> siFuture = CompletableFuture.supplyAsync(() ->
-                InstallSessionHelper.INSTANCE.get(launcher)
+        CompletableFuture<SessionInfo> siFuture = CompletableFuture.supplyAsync(
+                () -> InstallSessionHelper.INSTANCE.get(launcher)
                         .getActiveSessionInfo(item.user, packageName),
                 UI_HELPER_EXECUTOR);
         Consumer<SessionInfo> marketLaunchAction = sessionInfo -> {
@@ -279,7 +297,6 @@ public class ItemClickHandler {
         final int disabledFlags = shortcut.runtimeStatusFlags
                 & WorkspaceItemInfo.FLAG_DISABLED_MASK;
         // Handle the case where the disabled reason is DISABLED_REASON_VERSION_LOWER.
-        // Show an AlertDialog for the user to choose either updating the app or cancel the launch.
         if (maybeCreateAlertDialogForShortcut(shortcut, context)) {
             return true;
         }
@@ -287,7 +304,8 @@ public class ItemClickHandler {
         if ((disabledFlags
                 & ~FLAG_DISABLED_SUSPENDED
                 & ~FLAG_DISABLED_QUIET_USER) == 0) {
-            // If the app is only disabled because of the above flags, launch activity anyway.
+            // If the app is only disabled because of the above flags, launch activity
+            // anyway.
             // Framework will tell the user why the app is suspended.
             return false;
         } else {
@@ -350,7 +368,8 @@ public class ItemClickHandler {
     /**
      * Event handler for an app shortcut click.
      *
-     * @param v The view that was clicked. Must be a tagged with a {@link WorkspaceItemInfo}.
+     * @param v The view that was clicked. Must be a tagged with a
+     *          {@link WorkspaceItemInfo}.
      */
     public static void onClickAppShortcut(View v, WorkspaceItemInfo shortcut, Launcher launcher) {
         if (shortcut.isDisabled() && handleDisabledItemClicked(shortcut, launcher)) {
@@ -386,8 +405,7 @@ public class ItemClickHandler {
                 intent = ApiWrapper.INSTANCE.get(launcher).getAppMarketActivityIntent(
                         itemInfoWithIcon.getTargetComponent().getPackageName(),
                         Process.myUserHandle());
-            } else if (itemInfoWithIcon.itemType
-                    == LauncherSettings.Favorites.ITEM_TYPE_PRIVATE_SPACE_INSTALL_APP_BUTTON) {
+            } else if (itemInfoWithIcon.itemType == LauncherSettings.Favorites.ITEM_TYPE_PRIVATE_SPACE_INSTALL_APP_BUTTON) {
                 intent = ApiWrapper.INSTANCE.get(launcher).getAppMarketActivityIntent(
                         BuildConfig.APPLICATION_ID,
                         launcher.getAppsView().getPrivateProfileManager().getProfileUser());
@@ -418,7 +436,8 @@ public class ItemClickHandler {
         }
         if (v != null && launcher.supportsAdaptiveIconAnimation(v)
                 && !item.shouldUseBackgroundAnimation()) {
-            // Preload the icon to reduce latency b/w swapping the floating view with the original.
+            // Preload the icon to reduce latency b/w swapping the floating view with the
+            // original.
             FloatingIconView.fetchIcon(launcher, v, item, true /* isOpening */);
         }
 

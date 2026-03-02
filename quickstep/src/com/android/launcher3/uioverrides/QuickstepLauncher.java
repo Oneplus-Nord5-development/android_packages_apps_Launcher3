@@ -57,9 +57,11 @@ import static com.android.launcher3.popup.SystemShortcut.ADD_TO_HOME_SCREEN;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.BUBBLE_SHORTCUT;
 import static com.android.launcher3.popup.SystemShortcut.DONT_SUGGEST_APP;
+import static com.android.launcher3.popup.SystemShortcut.ENLARGE_FOLDER;
 import static com.android.launcher3.popup.SystemShortcut.INSTALL;
 import static com.android.launcher3.popup.SystemShortcut.PRIVATE_PROFILE_INSTALL;
 import static com.android.launcher3.popup.SystemShortcut.REMOVE;
+import static com.android.launcher3.popup.SystemShortcut.SHRINK_FOLDER;
 import static com.android.launcher3.popup.SystemShortcut.UNINSTALL_APP;
 import static com.android.launcher3.popup.SystemShortcut.WIDGETS;
 import static com.android.launcher3.taskbar.LauncherTaskbarUIController.ALL_APPS_PAGE_PROGRESS_INDEX;
@@ -255,10 +257,9 @@ import java.util.stream.Stream;
 
 public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         SystemShortcut.BubbleActivityStarter {
-    private static final boolean TRACE_LAYOUTS =
-            SystemProperties.getBoolean("persist.debug.trace_layouts", false);
-    private static final String TRACE_RELAYOUT_CLASS =
-            SystemProperties.get("persist.debug.trace_request_layout_class", null);
+    private static final boolean TRACE_LAYOUTS = SystemProperties.getBoolean("persist.debug.trace_layouts", false);
+    private static final String TRACE_RELAYOUT_CLASS = SystemProperties.get("persist.debug.trace_request_layout_class",
+            null);
 
     protected static final String RING_APPEAR_ANIMATION_PREFIX = "RingAppearAnimation\t";
 
@@ -282,7 +283,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     private TaskbarUiState mTaskbarUiState;
 
     /**
-     * If Launcher restarted while in the middle of an Overview split select, it needs this data to
+     * If Launcher restarted while in the middle of an Overview split select, it
+     * needs this data to
      * recover. In all other cases this will remain null.
      */
     private PendingSplitSelectInfo mPendingSplitSelectInfo = null;
@@ -304,24 +306,23 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     private boolean mOverviewBlurEnabled;
 
-    private final TaskViewRecentsTouchContext mTaskViewRecentsTouchContext =
-            new TaskViewRecentsTouchContext() {
-                @Override
-                public boolean isRecentsInteractive() {
-                    return isInState(OVERVIEW) || isInState(OVERVIEW_MODAL_TASK);
-                }
+    private final TaskViewRecentsTouchContext mTaskViewRecentsTouchContext = new TaskViewRecentsTouchContext() {
+        @Override
+        public boolean isRecentsInteractive() {
+            return isInState(OVERVIEW) || isInState(OVERVIEW_MODAL_TASK);
+        }
 
-                @Override
-                public boolean isRecentsModal() {
-                    return isInState(OVERVIEW_MODAL_TASK);
-                }
+        @Override
+        public boolean isRecentsModal() {
+            return isInState(OVERVIEW_MODAL_TASK);
+        }
 
-                @Override
-                public void onUserControlledAnimationCreated(
-                        AnimatorPlaybackController animController) {
-                    getStateManager().setCurrentUserControlledAnimation(animController);
-                }
-            };
+        @Override
+        public void onUserControlledAnimationCreated(
+                AnimatorPlaybackController animController) {
+            getStateManager().setCurrentUserControlledAnimation(animController);
+        }
+    };
 
     @Override
     protected LauncherOverlayManager getDefaultOverlay() {
@@ -340,11 +341,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         mActionsView = findViewById(R.id.overview_actions_view);
         RecentsView<?, LauncherState> overviewPanel = getOverviewPanel();
         SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(this);
-        mSplitSelectStateController =
-                new SplitSelectStateController(this, getStateManager(),
-                        getDepthController(), getStatsLogManager(),
-                        systemUiProxy, RecentsModel.INSTANCE.get(this),
-                        () -> onStateBack());
+        mSplitSelectStateController = new SplitSelectStateController(this, getStateManager(),
+                getDepthController(), getStatsLogManager(),
+                systemUiProxy, RecentsModel.INSTANCE.get(this),
+                () -> onStateBack());
         if (DesktopModeStatus.canEnterDesktopMode(this)) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
                     getStateManager(), systemUiProxy, getIApplicationThread(),
@@ -374,8 +374,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         mHotseatPredictionController = new HotseatPredictionController(this);
 
         mEnableWidgetDepth = SystemProperties.getBoolean("ro.launcher.depth.widget", true);
-        getWorkspace().addOverlayCallback(progress ->
-                onTaskbarInAppDisplayProgressUpdate(progress, MINUS_ONE_PAGE_PROGRESS_INDEX));
+        getWorkspace().addOverlayCallback(
+                progress -> onTaskbarInAppDisplayProgressUpdate(progress, MINUS_ONE_PAGE_PROGRESS_INDEX));
         addBackAnimationCallback(mSplitSelectStateController.getSplitBackHandler());
         if (refactorTaskbarUiState()) {
             mTaskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(this)
@@ -386,7 +386,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public void logAppLaunch(StatsLogManager statsLogManager, ItemInfo info,
             InstanceId instanceId) {
-        // If the app launch is from any of the surfaces in AllApps then add the InstanceId from
+        // If the app launch is from any of the surfaces in AllApps then add the
+        // InstanceId from
         // LiveSearchManager to recreate the AllApps session on the server side.
         if (mAllAppsSessionLogId != null && ALL_APPS.equals(
                 getStateManager().getCurrentStableState())) {
@@ -397,7 +398,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
         if (mAllAppsPredictions != null
                 && (info.itemType == ITEM_TYPE_APPLICATION
-                || info.itemType == ITEM_TYPE_DEEP_SHORTCUT)) {
+                        || info.itemType == ITEM_TYPE_DEEP_SHORTCUT)) {
             List<ItemInfo> items = mAllAppsPredictions.getContents();
             int count = items.size();
             for (int i = 0; i < count; i++) {
@@ -443,7 +444,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     /**
-     * Builds the {@link QuickstepTransitionManager} instance to use for managing transitions.
+     * Builds the {@link QuickstepTransitionManager} instance to use for managing
+     * transitions.
      */
     protected QuickstepTransitionManager buildAppTransitionManager() {
         return new QuickstepTransitionManager(this);
@@ -457,8 +459,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public RunnableList startActivitySafely(View v, Intent intent, ItemInfo item) {
-        PredictionRowView<?> predictionRowView =
-                getAppsView().getFloatingHeaderView().findFixedRowByType(PredictionRowView.class);
+        PredictionRowView<?> predictionRowView = getAppsView().getFloatingHeaderView()
+                .findFixedRowByType(PredictionRowView.class);
         // Pause the prediction row updates until the transition (if it exists) ends.
         predictionRowView.setPredictionUiUpdatePaused(true);
         RunnableList result = super.startActivitySafely(v, intent, item);
@@ -517,7 +519,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 mWallpaperThemeManager.recreateToUpdateTheme();
             }
         } else if (Flags.allAppsBlur()) {
-            // For all apps, we only need to update the scrim, which draws the panel. But if the
+            // For all apps, we only need to update the scrim, which draws the panel. But if
+            // the
             // activity was recreated above, this is unnecessary.
             getAppsView().invalidateHeader();
         }
@@ -541,13 +544,24 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public Stream<SystemShortcut.Factory> getSupportedShortcuts(ItemInfo itemInfo) {
         // Order matters as it affects order of appearance in popup container
-        List<SystemShortcut.Factory> shortcuts = new ArrayList(Arrays.asList(
-                APP_INFO, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
+        List<SystemShortcut.Factory> shortcuts = new ArrayList<>();
         int container = itemInfo.container;
+        if ((container == CONTAINER_DESKTOP || container == CONTAINER_HOTSEAT)
+                && itemInfo instanceof com.android.launcher3.model.data.FolderInfo) {
+            com.android.launcher3.model.data.FolderInfo fi = (com.android.launcher3.model.data.FolderInfo) itemInfo;
+            if (fi.isEnlarged()) {
+                shortcuts.add(SHRINK_FOLDER);
+            } else if (container == CONTAINER_DESKTOP) {
+                shortcuts.add(ENLARGE_FOLDER);
+            }
+        }
+
+        shortcuts.addAll(Arrays.asList(
+                APP_INFO, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
         if (canPinAppWithContextMenu()
                 && DisplayController.showDesktopTaskbarForFreeformDisplay(this)
                 && (container == CONTAINER_ALL_APPS
-                || container == CONTAINER_ALL_APPS_PREDICTION)) {
+                        || container == CONTAINER_ALL_APPS_PREDICTION)) {
             shortcuts.add(0, PIN_ITEM_FROM_LAUNCHER);
         }
 
@@ -559,11 +573,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 && (info.runtimeStatusFlags & FLAG_NOT_PINNABLE) == 0;
         if (Utilities.isWorkspaceEditAllowed(this)
                 && (container == CONTAINER_HOTSEAT || container == CONTAINER_DESKTOP
-                || /* Folder */ container > 0)) {
+                        || /* Folder */ container > 0)) {
             shortcuts.add(REMOVE);
         } else if (Utilities.isWorkspaceEditAllowed(this) && isPinnable
                 && (container == CONTAINER_ALL_APPS
-                || container == CONTAINER_ALL_APPS_PREDICTION)) {
+                        || container == CONTAINER_ALL_APPS_PREDICTION)) {
             shortcuts.add(ADD_TO_HOME_SCREEN);
         }
         shortcuts.add(DONT_SUGGEST_APP);
@@ -594,7 +608,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 && mTaskbarInteractor.canPinAppWithContextMenu();
     }
 
-    /** Mimic the impl of {@link TaskbarPopupController#canPinAppWithContextMenu}. */
+    /**
+     * Mimic the impl of {@link TaskbarPopupController#canPinAppWithContextMenu}.
+     */
     private boolean newCanPinAppWithContextMenu() {
         if (!DesktopExperienceFlags.ENABLE_PINNING_APP_WITH_CONTEXT_MENU.isTrue()) {
             return false;
@@ -602,7 +618,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         return DesktopVisibilityController.INSTANCE.get(this).isInDesktopMode(getDisplayId())
                 || mTaskbarUiState.getShowDesktopTaskbarForFreeformDisplayRef().getValue()
                 || (mTaskbarUiState.getShowLockedTaskbarOnHome().getValue()
-                && mTaskbarUiState.isTaskbarOnHomeRef().getValue());
+                        && mTaskbarUiState.isTaskbarOnHomeRef().getValue());
     }
 
     private List<SystemShortcut.Factory<QuickstepLauncher>> getSplitShortcuts() {
@@ -614,10 +630,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             return Collections.emptyList();
         }
         RecentsView recentsView = getOverviewPanel();
-        // TODO(b/266482558): Pull it out of PagedOrentationHandler for split from workspace.
-        List<SplitPositionOption> positions =
-                recentsView.getPagedOrientationHandler().getSplitPositionOptions(
-                        mDeviceProfile);
+        // TODO(b/266482558): Pull it out of PagedOrentationHandler for split from
+        // workspace.
+        List<SplitPositionOption> positions = recentsView.getPagedOrientationHandler().getSplitPositionOptions(
+                mDeviceProfile);
         List<SystemShortcut.Factory<QuickstepLauncher>> splitShortcuts = new ArrayList<>();
         for (SplitPositionOption position : positions) {
             splitShortcuts.add(getSplitSelectShortcutByPosition(position));
@@ -626,7 +642,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     /**
-     * Recents logic that triggers when launcher state changes or launcher activity stops/resumes.
+     * Recents logic that triggers when launcher state changes or launcher activity
+     * stops/resumes.
      */
     private void onStateOrResumeChanging(boolean inTransition) {
         LauncherState state = getStateManager().getState();
@@ -709,7 +726,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
 
         super.onDestroy();
-        if (mViewCapture != null) mViewCapture.close();
+        if (mViewCapture != null)
+            mViewCapture.close();
         removeBackAnimationCallback(mSplitSelectStateController.getSplitBackHandler());
     }
 
@@ -771,7 +789,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     protected void setTitle(@NonNull LauncherState state) {
         // Prevent accessibility title update announcement
         getWindow().getAttributes().accessibilityTitle = state.hasFlag(FLAG_SKIP_STATE_ANNOUNCEMENT)
-                ? getString(state.getTitle()) : null;
+                ? getString(state.getTitle())
+                : null;
         super.setTitle(state);
     }
 
@@ -781,8 +800,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
         ArrayList<TouchController> list = new ArrayList<>();
         list.add(getDragController());
-        BiConsumer<AnimatorSet, Long> splitAnimator = (animatorSet, duration) ->
-                animatorSet.play(mSplitSelectStateController.getSplitAnimationController()
+        BiConsumer<AnimatorSet, Long> splitAnimator = (animatorSet,
+                duration) -> animatorSet.play(mSplitSelectStateController.getSplitAnimationController()
                         .createPlaceholderDismissAnim(this, LAUNCHER_SPLIT_SELECTION_EXIT_HOME,
                                 duration));
         switch (mode) {
@@ -845,8 +864,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     protected boolean initDeviceProfile(InvariantDeviceProfile idp) {
         final boolean ret = super.initDeviceProfile(idp);
-        mDeviceProfile.isPredictiveBackSwipe =
-                getApplicationInfo().isOnBackInvokedCallbackEnabled();
+        mDeviceProfile.isPredictiveBackSwipe = getApplicationInfo().isOnBackInvokedCallbackEnabled();
         if (ret) {
             SystemUiProxy.INSTANCE.get(this).setLauncherAppIconSize(
                     mDeviceProfile.getWorkspaceIconProfile().getIconSizePx());
@@ -857,23 +875,27 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public void startSplitSelection(SplitSelectSource splitSelectSource) {
         RecentsView recentsView = getOverviewPanel();
-        // Check if there is already an instance of this app running, if so, initiate the split
+        // Check if there is already an instance of this app running, if so, initiate
+        // the split
         // using that.
         mSplitSelectStateController.findLastActiveTasksAndRunCallback(
                 Collections.singletonList(splitSelectSource.getItemInfo().getResolvedTargetInfo()),
                 false /* findExactPairMatch */,
                 foundTasks -> {
-                    @Nullable Task foundTask = foundTasks[0];
+                    @Nullable
+                    Task foundTask = foundTasks[0];
                     boolean taskWasFound = foundTask != null;
                     splitSelectSource.alreadyRunningTaskId = taskWasFound
                             ? foundTask.key.id
                             : INVALID_TASK_ID;
                     startSplitToHome(splitSelectSource);
-                }
-        );
+                });
     }
 
-    /** TODO(b/266482558) Migrate into SplitSelectStateController or someplace split specific. */
+    /**
+     * TODO(b/266482558) Migrate into SplitSelectStateController or someplace split
+     * specific.
+     */
     private void startSplitToHome(SplitSelectSource source) {
         AbstractFloatingView.closeAllOpenViews(this);
         int splitPlaceholderSize = getResources().getDimensionPixelSize(
@@ -898,9 +920,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         floatingTaskView.setAlpha(1);
         floatingTaskView.addStagingAnimation(anim, startingTaskRect, tempRect,
                 false /* fadeWithThumbnail */, true /* isStagedTask */);
-        floatingTaskView.setOnClickListener(view ->
-                mSplitSelectStateController.getSplitAnimationController().
-                        playAnimPlaceholderToFullscreen(this, view, Optional.empty()));
+        floatingTaskView.setOnClickListener(view -> mSplitSelectStateController.getSplitAnimationController()
+                .playAnimPlaceholderToFullscreen(this, view, Optional.empty()));
         floatingTaskView.setContentDescription(source.getItemInfo().contentDescription);
 
         mSplitSelectStateController.setFirstFloatingTaskView(floatingTaskView);
@@ -990,12 +1011,12 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             overviewCommandHelper.clearPendingCommands();
         }
         if (RecentsWindowFlags.getEnableOverviewInWindow() && !intentHasGnc) {
-            BaseContainerInterface<?, ?> defaultDisplayContainerInterface =
-                    OverviewComponentObserver.INSTANCE.get(this).getContainerInterface(
+            BaseContainerInterface<?, ?> defaultDisplayContainerInterface = OverviewComponentObserver.INSTANCE.get(this)
+                    .getContainerInterface(
                             DEFAULT_DISPLAY);
             if (defaultDisplayContainerInterface != null
-                    && defaultDisplayContainerInterface.getCreatedContainer()
-                    instanceof RecentsWindowManager defaultRecentsWindowManager) {
+                    && defaultDisplayContainerInterface
+                            .getCreatedContainer() instanceof RecentsWindowManager defaultRecentsWindowManager) {
                 defaultRecentsWindowManager.hideRecentsWindow();
             }
         }
@@ -1015,8 +1036,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public void onEnterAnimationComplete() {
         super.onEnterAnimationComplete();
-        // After the transition to home, enable the high-res thumbnail loader if it wasn't enabled
-        // as a part of quickstep, so that high-res thumbnails can load the next time we enter
+        // After the transition to home, enable the high-res thumbnail loader if it
+        // wasn't enabled
+        // as a part of quickstep, so that high-res thumbnails can load the next time we
+        // enter
         // overview
         RecentsModel.INSTANCE.get(this).getThumbnailCache()
                 .getHighResLoadingState().setVisible(true);
@@ -1026,7 +1049,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     protected void handleGestureContract(Intent intent) {
         if (GestureNavContract.isContractEnabled(intent)
                 && (FeatureFlags.SEPARATE_RECENTS_ACTIVITY.get()
-                || RecentsWindowFlags.getEnableOverviewInWindow())) {
+                        || RecentsWindowFlags.getEnableOverviewInWindow())) {
             super.handleGestureContract(intent);
         }
     }
@@ -1066,10 +1089,12 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         return tryHandleBackKey(event) || super.dispatchKeyEvent(event);
     }
 
-    // TODO (b/267248420) Once the recents input consumer has been removed, there is no need to
-    //  handle the back key specially.
+    // TODO (b/267248420) Once the recents input consumer has been removed, there is
+    // no need to
+    // handle the back key specially.
     private boolean tryHandleBackKey(KeyEvent event) {
-        // Unlike normal activity, recents can receive input event from InputConsumer, so the input
+        // Unlike normal activity, recents can receive input event from InputConsumer,
+        // so the input
         // event won't go through ViewRootImpl#InputStage#onProcess.
         // So when receive back key, try to do the same check thing in
         // ViewRootImpl#NativePreImeInputStage#onProcess
@@ -1088,7 +1113,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 OnBackInvokedDispatcher.PRIORITY_DEFAULT,
                 new FlingOnBackAnimationCallback() {
 
-                    @Nullable OnBackAnimationCallback mActiveOnBackAnimationCallback;
+                    @Nullable
+                    OnBackAnimationCallback mActiveOnBackAnimationCallback;
 
                     @Override
                     public void onBackStartedCompat(@NonNull BackEvent backEvent) {
@@ -1193,9 +1219,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     private void handlePendingActivityRequest() {
         if (mPendingActivityRequestCode != -1 && isInState(NORMAL)
                 && ((getActivityFlags() & ACTIVITY_STATE_DEFERRED_RESUMED) != 0)) {
-            // Remove any active ProxyActivityStarter task and send RESULT_CANCELED to Launcher.
+            // Remove any active ProxyActivityStarter task and send RESULT_CANCELED to
+            // Launcher.
             onActivityResult(mPendingActivityRequestCode, RESULT_CANCELED, null);
-            // ProxyActivityStarter is started with clear task to reset the task after which it
+            // ProxyActivityStarter is started with clear task to reset the task after which
+            // it
             // removes the task itself.
             startActivity(ProxyActivityStarter.getLaunchIntent(this, null));
         }
@@ -1228,8 +1256,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 initRemotelyCalculatedUnfoldAnimation(config);
             }
         } else {
-            ProxyUnfoldTransitionProvider provider =
-                    SystemUiProxy.INSTANCE.get(this).getUnfoldTransitionProvider();
+            ProxyUnfoldTransitionProvider provider = SystemUiProxy.INSTANCE.get(this).getUnfoldTransitionProvider();
             if (provider != null) {
                 new LauncherUnfoldTransitionController(this, provider);
             }
@@ -1238,20 +1265,18 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     /** Receives animation progress from sysui process. */
     private void initRemotelyCalculatedUnfoldAnimation(UnfoldTransitionConfig config) {
-        RemoteUnfoldSharedComponent unfoldComponent =
-                UnfoldTransitionFactory.createRemoteUnfoldSharedComponent(
-                        /* context= */ this,
-                        config,
-                        getMainExecutor(),
-                        getMainThreadHandler(),
-                        /* backgroundExecutor= */ UI_HELPER_EXECUTOR,
-                        /* bgHandler= */ UI_HELPER_EXECUTOR.getHandler(),
-                        /* tracingTagPrefix= */ "launcher",
-                        getSystemService(DisplayManager.class)
-                );
+        RemoteUnfoldSharedComponent unfoldComponent = UnfoldTransitionFactory.createRemoteUnfoldSharedComponent(
+                /* context= */ this,
+                config,
+                getMainExecutor(),
+                getMainThreadHandler(),
+                /* backgroundExecutor= */ UI_HELPER_EXECUTOR,
+                /* bgHandler= */ UI_HELPER_EXECUTOR.getHandler(),
+                /* tracingTagPrefix= */ "launcher",
+                getSystemService(DisplayManager.class));
 
-        final RemoteUnfoldTransitionReceiver remoteUnfoldTransitionProgressProvider =
-                unfoldComponent.getRemoteTransitionProgress().orElseThrow(
+        final RemoteUnfoldTransitionReceiver remoteUnfoldTransitionProgressProvider = unfoldComponent
+                .getRemoteTransitionProgress().orElseThrow(
                         () -> new IllegalStateException(
                                 "Trying to create getRemoteTransitionProgress when the transition "
                                         + "is disabled"));
@@ -1270,8 +1295,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 /* launcher= */ this,
                 getWindowManager(),
                 progressProvider,
-                rotationChangeProvider
-        );
+                rotationChangeProvider);
     }
 
     @Override
@@ -1353,19 +1377,22 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public float[] getNormalOverviewScaleAndOffset() {
         return DisplayController.getNavigationMode(this).hasGestures
-                ? new float[] {1, 1} : new float[] {1.1f, NO_OFFSET};
+                ? new float[] { 1, 1 }
+                : new float[] { 1.1f, NO_OFFSET };
     }
 
     @Override
     public void finishBindingItems(IntSet pagesBoundFirst) {
         super.finishBindingItems(pagesBoundFirst);
-        // Instantiate and initialize WellbeingModel now that its loading won't interfere with
+        // Instantiate and initialize WellbeingModel now that its loading won't
+        // interfere with
         // populating workspace.
         // TODO: Find a better place for this
         WellbeingModel.INSTANCE.get(this);
 
         if (mLauncherUnfoldAnimationController != null) {
-            // This is needed in case items are rebound while the unfold animation is in progress.
+            // This is needed in case items are rebound while the unfold animation is in
+            // progress.
             mLauncherUnfoldAnimationController.updateRegisteredViewsIfNeeded();
         }
     }
@@ -1417,12 +1444,16 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public void onDisplayInfoChanged(Context context, DisplayController.Info info, int flags) {
         super.onDisplayInfoChanged(context, info, flags);
-        // When changing screens, force moving to rest state similar to StatefulActivity.onStop, as
+        // When changing screens, force moving to rest state similar to
+        // StatefulActivity.onStop, as
         // StatefulActivity isn't called consistently.
         if ((flags & CHANGE_ACTIVE_SCREEN) != 0) {
-            // Do not animate moving to rest state, as it can clash with Launcher#onIdpChanged
-            // where reapplyUi calls StateManager's reapplyState during the state change animation,
-            // and cancel the state change unexpectedly. The screen will be off during screen
+            // Do not animate moving to rest state, as it can clash with
+            // Launcher#onIdpChanged
+            // where reapplyUi calls StateManager's reapplyState during the state change
+            // animation,
+            // and cancel the state change unexpectedly. The screen will be off during
+            // screen
             // transition, hiding the unanimated transition.
             getStateManager().moveToRestState(/* isAnimated = */false);
         }
@@ -1439,11 +1470,16 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        // If Launcher shuts downs during split select, we save some extra data in the recovery
-        // bundle to allow graceful recovery. The normal LauncherState restore mechanism doesn't
-        // work in this case because restoring straight to OverviewSplitSelect without staging data,
-        // or before the tasks themselves have loaded into Overview, causes a crash. So we tell
-        // Launcher to first restore into Overview state, wait for the relevant tasks and icons to
+        // If Launcher shuts downs during split select, we save some extra data in the
+        // recovery
+        // bundle to allow graceful recovery. The normal LauncherState restore mechanism
+        // doesn't
+        // work in this case because restoring straight to OverviewSplitSelect without
+        // staging data,
+        // or before the tasks themselves have loaded into Overview, causes a crash. So
+        // we tell
+        // Launcher to first restore into Overview state, wait for the relevant tasks
+        // and icons to
         // load in, and then proceed to OverviewSplitSelect.
         if (isInState(OVERVIEW_SPLIT_SELECT)) {
             // Launcher will restart in Overview and then transition to OverviewSplitSelect.
@@ -1451,17 +1487,18 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                     new PendingSplitSelectInfo(
                             mSplitSelectStateController.getInitialTaskId(),
                             mSplitSelectStateController.getActiveSplitStagePosition(),
-                            mSplitSelectStateController.getSplitEvent())
-            ));
+                            mSplitSelectStateController.getSplitEvent())));
             outState.putInt(RUNTIME_STATE, OVERVIEW.ordinal);
         }
     }
 
     /**
-     * When Launcher restarts, it sometimes needs to recover to a split selection state.
+     * When Launcher restarts, it sometimes needs to recover to a split selection
+     * state.
      * This function checks if such a recovery is needed.
+     * 
      * @return a boolean representing whether the launcher is waiting to recover to
-     * OverviewSplitSelect state.
+     *         OverviewSplitSelect state.
      */
     public boolean hasPendingSplitSelectInfo() {
         return mPendingSplitSelectInfo != null;
@@ -1475,7 +1512,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     /**
-     * When the launcher has successfully recovered to OverviewSplitSelect state, this function
+     * When the launcher has successfully recovered to OverviewSplitSelect state,
+     * this function
      * deletes the recovery data, returning it to a null state.
      */
     public void finishSplitSelectRecovery() {
@@ -1608,13 +1646,15 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public void showShortcutBubble(ShortcutInfo info, EntryPoint entryPoint) {
-        if (info == null) return;
+        if (info == null)
+            return;
         BubbleActivityStarter.INSTANCE.get(this).showShortcutBubble(info, entryPoint);
     }
 
     @Override
     public void showAppBubble(Intent intent, UserHandle user, EntryPoint entryPoint) {
-        if (intent == null || intent.getPackage() == null) return;
+        if (intent == null || intent.getPackage() == null)
+            return;
         BubbleActivityStarter.INSTANCE.get(this).showAppBubble(intent, user, entryPoint);
     }
 
@@ -1624,7 +1664,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     /**
-     * Similar to {@link #getFirstHomeElementForAppClose} but also matches all apps if its visible
+     * Similar to {@link #getFirstHomeElementForAppClose} but also matches all apps
+     * if its visible
      */
     @Nullable
     public View getFirstVisibleElementForAppClose(
@@ -1634,14 +1675,13 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             View v = null;
             if (svi != null) {
                 // Preferred item match
-                v = activeRecyclerView.findViewByPredicate(view ->
-                        view.isAggregatedVisible()
-                                && view.getTag() instanceof ItemInfo info && svi.matches(info));
+                v = activeRecyclerView.findViewByPredicate(view -> view.isAggregatedVisible()
+                        && view.getTag() instanceof ItemInfo info && svi.matches(info));
             }
             if (v == null) {
                 // Package user match
-                v = activeRecyclerView.findViewByPredicate(view ->
-                        view.isAggregatedVisible() && view.getTag() instanceof ItemInfo info
+                v = activeRecyclerView.findViewByPredicate(
+                        view -> view.isAggregatedVisible() && view.getTag() instanceof ItemInfo info
                                 && info.itemType == ITEM_TYPE_APPLICATION
                                 && info.user.equals(user)
                                 && TextUtils.equals(info.getTargetPackage(), packageName));
@@ -1670,8 +1710,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
         RecentsView recentsView = getOverviewPanel();
         writer.println("\nQuickstepLauncher:");
-        writer.println(prefix + "\tmOrientationState: " + (recentsView == null ? "recentsNull" :
-                recentsView.getPagedViewOrientedState()));
+        writer.println(prefix + "\tmOrientationState: "
+                + (recentsView == null ? "recentsNull" : recentsView.getPagedViewOrientedState()));
         if (recentsView != null) {
             recentsView.getSplitSelectController().dump(prefix, writer);
         }
@@ -1681,9 +1721,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         if (mHotseatPredictionController != null) {
             mHotseatPredictionController.dump(prefix, writer);
         }
-        PredictionRowView<?> predictionRowView =
-                getAppsView().getFloatingHeaderView().findFixedRowByType(
-                        PredictionRowView.class);
+        PredictionRowView<?> predictionRowView = getAppsView().getFloatingHeaderView().findFixedRowByType(
+                PredictionRowView.class);
         predictionRowView.dump(prefix, writer);
     }
 

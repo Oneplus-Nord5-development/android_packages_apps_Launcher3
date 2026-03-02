@@ -81,16 +81,23 @@ public class MultipageCellLayout extends CellLayout {
     }
 
     @Override
-    boolean createAreaForResize(int cellX, int cellY, int spanX, int spanY, View dragView,
+    public int[] createAreaForResize(int cellX, int cellY, int spanX, int spanY, View dragView,
             int[] direction, boolean commit) {
         // Add seam to x position
         if (cellX >= mCountX / 2) {
             cellX++;
         }
         int finalCellX = cellX;
-        return createReorderAlgorithm().simulateSeam(
+        int[] result = createReorderAlgorithm().simulateSeam(
                 () -> super.createAreaForResize(finalCellX, cellY, spanX, spanY, dragView,
                         direction, commit));
+        if (result == null) {
+            int alternativeCellX = cellX + mCountX;
+            result = createReorderAlgorithm().simulateSeam(
+                    () -> super.createAreaForResize(alternativeCellX, cellY, spanX, spanY, dragView,
+                            direction, commit));
+        }
+        return result;
     }
 
     @Override
@@ -154,13 +161,11 @@ public class MultipageCellLayout extends CellLayout {
             if (!(workspaceItem instanceof Reorderable)) {
                 continue;
             }
-            CellLayoutLayoutParams params =
-                    (CellLayoutLayoutParams) workspaceItem.getLayoutParams();
+            CellLayoutLayoutParams params = (CellLayoutLayoutParams) workspaceItem.getLayoutParams();
             ((Reorderable) workspaceItem).getTranslateDelegate().setTranslation(
                     MultiTranslateDelegate.INDEX_CELLAYOUT_MULTIPAGE_SPACING,
                     getMarginForGivenCellParams(params),
-                    0
-            );
+                    0);
 
         }
     }

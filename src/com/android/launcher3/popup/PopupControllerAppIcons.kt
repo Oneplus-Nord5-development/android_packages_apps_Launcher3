@@ -32,14 +32,13 @@ import java.util.stream.Collectors
  */
 class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : ActivityContext {
     override fun show(view: View): Popup? {
-        val icon = view as BubbleTextView
-        val launcher = Launcher.getLauncher(icon.context)
+        val launcher = Launcher.getLauncher(view.context)
         if (PopupContainer.getOpen(launcher) != null) {
             // There is already an items container open, so don't open this one.
-            icon.clearFocus()
+            view.clearFocus()
             return null
         }
-        val item = icon.tag as ItemInfo
+        val item = view.tag as? ItemInfo ?: return null
         if (!ShortcutUtil.supportsShortcuts(item)) {
             return null
         }
@@ -49,7 +48,7 @@ class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : A
             launcher
                 .getSupportedShortcuts(item)
                 .map<SystemShortcut<Launcher>> { s ->
-                    s.getShortcut(launcher, item, icon) as SystemShortcut<Launcher>?
+                    s.getShortcut(launcher, item, view) as SystemShortcut<Launcher>?
                 }
                 .filter { it != null }
                 .collect(Collectors.toList())
@@ -57,12 +56,12 @@ class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : A
         val container =
             PopupContainerWithArrow.create<Launcher>(
                 context = launcher,
-                originalView = icon,
+                originalView = view,
                 itemInfo = item,
             )
         container.configureForLauncher(launcher, item)
         container.populateAndShowRows(deepShortcutCount,
-            if (view.showingMinimalPopup) emptyList() else systemShortcuts)
+            if (view is BubbleTextView && view.showingMinimalPopup) emptyList() else systemShortcuts)
         launcher.refreshAndBindWidgetsForPackageUser(PackageUserKey.fromItemInfo(item))
         container.requestFocus()
         return container

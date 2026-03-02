@@ -59,10 +59,24 @@ public class FolderInfo extends CollectionInfo {
     public static final int FLAG_MANUAL_FOLDER_NAME = 0x00000008;
 
     /**
+     * The folder is in enlarged state, occupying multiple grid cells on the
+     * workspace
+     * and displaying app icons directly without opening the folder popup.
+     */
+    public static final int FLAG_ENLARGED = 0x00000010;
+
+    /** Default span size for enlarged folders (columns). */
+    public static final int ENLARGED_SPAN_X = 2;
+
+    /** Default span size for enlarged folders (rows). */
+    public static final int ENLARGED_SPAN_Y = 2;
+
+    /**
      * Different states of folder label.
      */
     public enum LabelState {
-        // Folder's label is not yet assigned( i.e., title == null). Eligible for auto-labeling.
+        // Folder's label is not yet assigned( i.e., title == null). Eligible for
+        // auto-labeling.
         UNLABELED(Attribute.UNLABELED),
 
         // Folder's label is empty(i.e., title == ""). Not eligible for auto-labeling.
@@ -104,7 +118,8 @@ public class FolderInfo extends CollectionInfo {
     }
 
     /**
-     * Returns the folder's contents as an unsorted ArrayList of {@link ItemInfo}. Includes
+     * Returns the folder's contents as an unsorted ArrayList of {@link ItemInfo}.
+     * Includes
      * {@link WorkspaceItemInfo} and {@link AppPairInfo}s.
      */
     @NonNull
@@ -114,12 +129,14 @@ public class FolderInfo extends CollectionInfo {
     }
 
     /**
-     * Returns the folder's contents as an ArrayList of {@link WorkspaceItemInfo}. Note: Does not
-     * return any {@link AppPairInfo}s contained in the folder, instead collects *their* contents
+     * Returns the folder's contents as an ArrayList of {@link WorkspaceItemInfo}.
+     * Note: Does not
+     * return any {@link AppPairInfo}s contained in the folder, instead collects
+     * *their* contents
      * and adds them to the ArrayList.
      */
     @Override
-    public ArrayList<WorkspaceItemInfo> getAppContents()  {
+    public ArrayList<WorkspaceItemInfo> getAppContents() {
         ArrayList<WorkspaceItemInfo> workspaceItemInfos = new ArrayList<>();
         for (ItemInfo item : contents) {
             if (item instanceof WorkspaceItemInfo wii) {
@@ -142,9 +159,9 @@ public class FolderInfo extends CollectionInfo {
     }
 
     /**
-     * @param option flag to set or clear
+     * @param option    flag to set or clear
      * @param isEnabled whether to set or clear the flag
-     * @param writer if not null, save changes to the db.
+     * @param writer    if not null, save changes to the db.
      */
     public void setOption(int option, boolean isEnabled, ModelWriter writer) {
         int oldOptions = options;
@@ -154,6 +171,34 @@ public class FolderInfo extends CollectionInfo {
             options &= ~option;
         }
         if (writer != null && oldOptions != options) {
+            writer.updateItemInDatabase(this);
+        }
+    }
+
+    /**
+     * Returns whether this folder is in the enlarged state.
+     */
+    public boolean isEnlarged() {
+        return hasOption(FLAG_ENLARGED);
+    }
+
+    /**
+     * Sets or clears the enlarged state for this folder and updates the span
+     * accordingly.
+     *
+     * @param enlarged whether to set or clear the enlarged flag
+     * @param writer   if not null, save changes to the db.
+     */
+    public void setEnlarged(boolean enlarged, ModelWriter writer) {
+        setOption(FLAG_ENLARGED, enlarged, writer);
+        if (enlarged) {
+            spanX = ENLARGED_SPAN_X;
+            spanY = ENLARGED_SPAN_Y;
+        } else {
+            spanX = 1;
+            spanY = 1;
+        }
+        if (writer != null) {
             writer.updateItemInDatabase(this);
         }
     }
@@ -181,7 +226,8 @@ public class FolderInfo extends CollectionInfo {
 
     public void setTitle(@Nullable CharSequence title, ModelWriter modelWriter) {
         // Updating label from null to empty is considered as false touch.
-        // Retaining null title(ie., UNLABELED state) allows auto-labeling when new items added.
+        // Retaining null title(ie., UNLABELED state) allows auto-labeling when new
+        // items added.
         if (isEmpty(title) && this.title == null) {
             return;
         }
@@ -192,11 +238,10 @@ public class FolderInfo extends CollectionInfo {
         }
 
         this.title = title;
-        LabelState newLabelState =
-                title == null ? LabelState.UNLABELED
-                        : title.length() == 0 ? LabelState.EMPTY :
-                                getAcceptedSuggestionIndex().isPresent() ? LabelState.SUGGESTED
-                                        : LabelState.MANUAL;
+        LabelState newLabelState = title == null ? LabelState.UNLABELED
+                : title.length() == 0 ? LabelState.EMPTY
+                        : getAcceptedSuggestionIndex().isPresent() ? LabelState.SUGGESTED
+                                : LabelState.MANUAL;
 
         if (newLabelState.equals(LabelState.MANUAL)) {
             options |= FLAG_MANUAL_FOLDER_NAME;
@@ -213,8 +258,8 @@ public class FolderInfo extends CollectionInfo {
      */
     public LabelState getLabelState() {
         return title == null ? LabelState.UNLABELED
-                : title.length() == 0 ? LabelState.EMPTY :
-                        hasOption(FLAG_MANUAL_FOLDER_NAME) ? LabelState.MANUAL
+                : title.length() == 0 ? LabelState.EMPTY
+                        : hasOption(FLAG_MANUAL_FOLDER_NAME) ? LabelState.MANUAL
                                 : LabelState.SUGGESTED;
     }
 
@@ -247,7 +292,7 @@ public class FolderInfo extends CollectionInfo {
         return IntStream.range(0, labels.length)
                 .filter(index -> !isEmpty(labels[index])
                         && newLabel.equalsIgnoreCase(
-                        labels[index].toString()))
+                                labels[index].toString()))
                 .sequential()
                 .findFirst();
     }
@@ -256,7 +301,7 @@ public class FolderInfo extends CollectionInfo {
      * Returns {@link FromState} based on current {@link #title}.
      */
     public LauncherAtom.FromState getFromLabelState() {
-        switch (getLabelState()){
+        switch (getLabelState()) {
             case EMPTY:
                 return LauncherAtom.FromState.FROM_EMPTY;
             case MANUAL:

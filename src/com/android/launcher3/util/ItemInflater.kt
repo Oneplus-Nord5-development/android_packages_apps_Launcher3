@@ -79,14 +79,25 @@ class ItemInflater<T>(
                     container = container,
                 )
 
-            Favorites.ITEM_TYPE_FOLDER ->
-                FolderIcon.inflateFolderAndIcon(
+            Favorites.ITEM_TYPE_FOLDER -> {
+                val folderInfo = item as FolderInfo
+                if (folderInfo.isEnlarged) {
+                    val view = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.enlarged_folder, parent, false) as com.android.launcher3.folder.EnlargedFolderView
+                    view.bindFolder(folderInfo)
+                    view.tag = folderInfo
+                    view.setOnClickListener(clickListener)
+                    view.onFocusChangeListener = focusListener
+                    view
+                } else {
+                    FolderIcon.inflateFolderAndIcon(
                         R.layout.folder_icon,
                         context,
                         parent,
-                        item as FolderInfo,
-                    )
-                    .apply { onFocusChangeListener = focusListener }
+                        folderInfo,
+                    ).apply { onFocusChangeListener = focusListener }
+                }
+            }
 
             Favorites.ITEM_TYPE_APP_PAIR ->
                 AppPairIcon.inflateIcon(
