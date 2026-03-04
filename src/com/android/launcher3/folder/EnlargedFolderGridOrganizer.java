@@ -57,6 +57,10 @@ public class EnlargedFolderGridOrganizer {
         return mMaxItemsPerPage;
     }
 
+    public DeviceProfile getDeviceProfile() {
+        return mDeviceProfile;
+    }
+
     /**
      * Translates a flat rank into a 2D position within a grid page.
      */

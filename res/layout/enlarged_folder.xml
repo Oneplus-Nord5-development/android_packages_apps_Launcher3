@@ -23,6 +23,7 @@
     android:focusable="true"
     android:clipChildren="false"
     android:clipToPadding="false"
+    android:padding="6dp"
     android:background="@drawable/round_rect_folder"
     android:defaultFocusHighlightEnabled="false">
 
@@ -35,13 +36,15 @@
         android:ellipsize="end"
         android:textSize="12sp"
         android:textColor="?android:attr/textColorPrimary"
-        android:paddingBottom="4dp" />
+        android:visibility="gone" />
 
     <com.android.launcher3.folder.EnlargedFolderPagedView
         android:id="@+id/enlarged_folder_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="2dp"
         android:clipChildren="false"
         android:clipToPadding="false" />
 
@@ -49,6 +52,7 @@
         android:id="@+id/enlarged_folder_page_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
         android:layout_gravity="center_horizontal" />
 
 </com.android.launcher3.folder.EnlargedFolderView>

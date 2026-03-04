@@ -122,9 +122,12 @@ public class EnlargedFolderPagedView extends PagedView<PageIndicatorDots> {
 
     private CellLayout createAndAddNewPage() {
         CellLayout page = mViewCache.getView(R.layout.folder_page, getContext(), this);
-        // Do NOT call setCellDimensions — let CellLayout.onMeasure() dynamically
-        // compute cell sizes based on available space (mFixedCellWidth defaults to -1).
+        // Use folder cell sizing to keep icon spacing close to standard folder visuals.
+        page.setCellDimensions(
+                mOrganizer.getDeviceProfile().getFolderProfile().getCellWidthPx(),
+                mOrganizer.getDeviceProfile().getFolderProfile().getCellHeightPx());
         page.getShortcutsAndWidgets().setMotionEventSplittingEnabled(false);
+        page.setInvertIfRtl(true);
         page.setGridSize(mGridCountX, mGridCountY);
         addView(page, -1, generateDefaultLayoutParams());
         return page;
@@ -186,6 +189,6 @@ public class EnlargedFolderPagedView extends PagedView<PageIndicatorDots> {
 
     @Override
     protected int getChildGap(int fromIndex, int toIndex) {
-        return 0; // Padding handled by parent
+        return getPaddingLeft() + getPaddingRight();
     }
 }

@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget;
+import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -18,9 +19,8 @@ import com.android.launcher3.views.ActivityContext;
  * workspace. It displays a grid of app icons that can be directly interacted
  * with, without needing to open the standard folder popup.
  *
- * The view enforces a 1:1 square aspect ratio by dynamically adjusting
- * padding in {@link #onSizeChanged}, letting LinearLayout handle
- * layout_weight distribution naturally within the padded area.
+ * The view keeps spacing/layout stable across device profiles and supports the
+ * same workspace long-press behavior as a regular FolderIcon.
  */
 public class EnlargedFolderView extends LinearLayout implements DragSource {
 
@@ -66,20 +66,6 @@ public class EnlargedFolderView extends LinearLayout implements DragSource {
         setClipToOutline(true);
     }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        // Enforce 1:1 square by using padding to center a square content area
-        int size = Math.min(w, h);
-        int padX = (w - size) / 2;
-        int padY = (h - size) / 2;
-        // Only update padding if it actually changed, to avoid infinite layout loops
-        if (getPaddingLeft() != padX || getPaddingTop() != padY
-                || getPaddingRight() != padX || getPaddingBottom() != padY) {
-            setPadding(padX, padY, padX, padY);
-        }
-    }
-
     public void bindFolder(FolderInfo info) {
         mInfo = info;
         if (mFolderName != null && info.title != null) {
@@ -88,8 +74,20 @@ public class EnlargedFolderView extends LinearLayout implements DragSource {
         if (mContent != null) {
             mContent.bindItems(info.getContents());
         }
-        // Click listener is set by ItemInflater via activity.getItemOnClickListener()
-        // which routes to ItemClickHandler.INSTANCE — no need to set it here.
+        if (mFolderName != null) {
+            mFolderName.setVisibility(View.GONE);
+        }
+        CharSequence title = info.title == null ? "" : info.title;
+        setContentDescription(getContext().getString(
+                R.string.enlarged_folder_description,
+                title,
+                info.getContents().size(),
+                1,
+                1));
+        // Click listener is set by ItemInflater via activity.getItemOnClickListener().
+        // Long-press is wired to workspace drag/popup flow.
+        setOnLongClickListener(
+                Launcher.getLauncher(getContext()).getWorkspace().getWorkspaceChildOnLongClickListener());
     }
 
     /**

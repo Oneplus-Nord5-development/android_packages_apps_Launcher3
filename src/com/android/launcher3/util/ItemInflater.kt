@@ -86,7 +86,6 @@ class ItemInflater<T>(
                         .inflate(R.layout.enlarged_folder, parent, false) as com.android.launcher3.folder.EnlargedFolderView
                     view.bindFolder(folderInfo)
                     view.tag = folderInfo
-                    view.setOnClickListener(clickListener)
                     view.onFocusChangeListener = focusListener
                     view
                 } else {

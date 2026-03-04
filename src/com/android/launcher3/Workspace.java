@@ -1856,6 +1856,16 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     dragOptions.preDragCondition = popup.createPreDragCondition();
                 }
             }
+        } else if (child instanceof com.android.launcher3.folder.EnlargedFolderView) {
+            com.android.launcher3.folder.EnlargedFolderView efv =
+                    (com.android.launcher3.folder.EnlargedFolderView) child;
+            if (!dragOptions.isAccessibleDrag) {
+                com.android.launcher3.popup.Popup popup =
+                        mLauncher.getPopupControllerForAppIcons().show(efv);
+                if (popup != null) {
+                    dragOptions.preDragCondition = popup.createPreDragCondition();
+                }
+            }
         } else if (Flags.homeScreenEditImprovements() && child instanceof Poppable
                 && !dragOptions.isAccessibleDrag) {
             Popup popup = mLauncher.getPopupControllerForHomeScreenItems()
@@ -2899,8 +2909,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
         boolean willAddToFolder = willAddToExistingUserFolder(info, mDragOverView);
         if (willAddToFolder && mDragMode == DRAG_MODE_NONE) {
-            mDragOverFolderIcon = ((FolderIcon) mDragOverView);
-            mDragOverFolderIcon.onDragEnter(info);
+            if (mDragOverView instanceof FolderIcon) {
+                mDragOverFolderIcon = (FolderIcon) mDragOverView;
+                mDragOverFolderIcon.onDragEnter(info);
+            } else {
+                mDragOverFolderIcon = null;
+            }
             if (mDragTargetLayout != null) {
                 mDragTargetLayout.clearDragOutlines();
             }
