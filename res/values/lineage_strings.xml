@@ -73,4 +73,9 @@
     <string name="tapered_rect_shape_title">Tapered rect</string>
     <string name="teardrop_shape_title">Teardrop</string>
     <string name="rounded_rect_shape_title">Rounded rect</string>
+
+    <!-- Transition animation -->
+    <string name="pref_transition_animation_scale_title">App transition animation speed</string>
+    <string name="pref_transition_animation_scale_summary">Adjust app opening and closing transition speed</string>
+    <string name="pref_transition_animation_scale_value">%1$.1fx</string>
 </resources>
