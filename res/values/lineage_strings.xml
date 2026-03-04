@@ -64,4 +64,9 @@
     <!-- DT2S -->
     <string name="pref_sleep_gesture_title">Tap to sleep</string>
     <string name="pref_sleep_gesture_summary">Double-tap an empty area in the home screen to turn off the display</string>
+
+    <!-- Transition animation -->
+    <string name="pref_transition_animation_scale_title">App transition animation speed</string>
+    <string name="pref_transition_animation_scale_summary">Adjust app opening and closing transition speed</string>
+    <string name="pref_transition_animation_scale_value">%1$.1fx</string>
 </resources>
