@@ -102,11 +102,16 @@ public class EnlargedFolderPagedView extends PagedView<PageIndicatorDots> {
                     BubbleTextView.DISPLAY_FOLDER);
         } else {
             icon = mViewCache.getView(R.layout.folder_application, getContext(), null);
-            ((BubbleTextView) icon).applyFromWorkspaceItem((WorkspaceItemInfo) item);
+            BubbleTextView bubble = (BubbleTextView) icon;
+            bubble.applyFromWorkspaceItem((WorkspaceItemInfo) item);
+            bubble.setTextVisibility(false);
         }
 
         // Each icon gets its own click listener to launch the app directly
         icon.setOnClickListener(ac.getItemOnClickListener());
+        icon.setOnLongClickListener(
+                com.android.launcher3.Launcher.getLauncher(getContext()).getWorkspace()
+                        .getWorkspaceChildOnLongClickListener());
 
         CellLayoutLayoutParams lp = (CellLayoutLayoutParams) icon.getLayoutParams();
         Point pos = mOrganizer.getPosForRank(item.rank);
@@ -122,10 +127,7 @@ public class EnlargedFolderPagedView extends PagedView<PageIndicatorDots> {
 
     private CellLayout createAndAddNewPage() {
         CellLayout page = mViewCache.getView(R.layout.folder_page, getContext(), this);
-        // Use folder cell sizing to keep icon spacing close to standard folder visuals.
-        page.setCellDimensions(
-                mOrganizer.getDeviceProfile().getFolderProfile().getCellWidthPx(),
-                mOrganizer.getDeviceProfile().getFolderProfile().getCellHeightPx());
+        // Let CellLayout measure dynamically for the available enlarged-folder space.
         page.getShortcutsAndWidgets().setMotionEventSplittingEnabled(false);
         page.setInvertIfRtl(true);
         page.setGridSize(mGridCountX, mGridCountY);

@@ -396,6 +396,12 @@ private constructor(
                 if (!updateIconUi) {
                     return
                 }
+                if (originalView is com.android.launcher3.folder.EnlargedFolderView) {
+                    // Keep enlarged folders visible during pre-drag; hiding the whole view causes
+                    // the folder to disappear/glitch during gesture animations.
+                    originalView.visibility = VISIBLE
+                    return
+                }
                 if (mIsAboveIcon) {
                     // Hide only the icon, keep the text visible.
                     originalIcon?.setIconVisible(false)
@@ -408,6 +414,10 @@ private constructor(
 
             override fun onPreDragEnd(dragObject: DragObject, dragStarted: Boolean) {
                 if (!updateIconUi) {
+                    return
+                }
+                if (originalView is com.android.launcher3.folder.EnlargedFolderView) {
+                    originalView.visibility = VISIBLE
                     return
                 }
                 originalIcon?.setIconVisible(true)
