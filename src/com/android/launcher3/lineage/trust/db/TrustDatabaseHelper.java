@@ -25,14 +25,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class TrustDatabaseHelper extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "trust_apps_db";
 
     private static final String TABLE_NAME = "trust_apps";
+    private static final String OLD_TABLE_NAME = TABLE_NAME + "_old";
     private static final String KEY_UID = "uid";
     private static final String KEY_PKGNAME = "pkgname";
     private static final String KEY_HIDDEN = "hidden";
-    private static final String KEY_PROTECTED = "protected";
 
     @Nullable
     private static TrustDatabaseHelper sSingleton;
@@ -54,15 +54,28 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
         String CMD_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME +
                 "(" +
                 KEY_UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                KEY_PKGNAME + " TEXT," +
-                KEY_HIDDEN + " INTEGER DEFAULT 0," +
-                KEY_PROTECTED + " INTEGER DEFAULT 0" +
+                KEY_PKGNAME + " TEXT UNIQUE," +
+                KEY_HIDDEN + " INTEGER DEFAULT 0" +
                 ")";
         db.execSQL(CMD_CREATE_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion < 2) {
+            db.beginTransaction();
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_NAME + " RENAME TO " + OLD_TABLE_NAME);
+                onCreate(db);
+                db.execSQL("INSERT INTO " + TABLE_NAME + " (" + KEY_PKGNAME + ", "
+                        + KEY_HIDDEN + ") SELECT " + KEY_PKGNAME + ", MAX(" + KEY_HIDDEN
+                        + ") FROM " + OLD_TABLE_NAME + " GROUP BY " + KEY_PKGNAME);
+                db.execSQL("DROP TABLE " + OLD_TABLE_NAME);
+                db.setTransactionSuccessful();
+            } finally {
+                db.endTransaction();
+            }
+        }
     }
 
     public void addHiddenApp(@NonNull String packageName) {
@@ -79,8 +92,8 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_HIDDEN, 1);
 
             int rows = db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?",
-                    new String[]{KEY_PKGNAME});
-            if (rows != 1) {
+                    new String[]{packageName});
+            if (rows < 1) {
                 // Entry doesn't exist, create a new one
                 db.insertOrThrow(TABLE_NAME, null, values);
             }
@@ -91,34 +104,6 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
             db.endTransaction();
         }
     }
-
-    public void addProtectedApp(@NonNull String packageName) {
-        if (isPackageProtected(packageName)) {
-            return;
-        }
-
-        SQLiteDatabase db = getWritableDatabase();
-        db.beginTransaction();
-
-        try {
-            ContentValues values = new ContentValues();
-            values.put(KEY_PKGNAME, packageName);
-            values.put(KEY_PROTECTED, 1);
-
-            int rows = db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?",
-                    new String[]{KEY_PKGNAME});
-            if (rows != 1) {
-                // Entry doesn't exist, create a new one
-                db.insertOrThrow(TABLE_NAME, null, values);
-            }
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            // Ignored
-        } finally {
-            db.endTransaction();
-        }
-    }
-
 
     public void removeHiddenApp(@NonNull String packageName) {
         if (!isPackageHidden(packageName)) {
@@ -141,49 +126,9 @@ public class TrustDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void removeProtectedApp(@NonNull String packageName) {
-        if (!isPackageProtected(packageName)) {
-            return;
-        }
-
-        SQLiteDatabase db = getWritableDatabase();
-        db.beginTransaction();
-
-        try {
-            ContentValues values = new ContentValues();
-            values.put(KEY_PROTECTED, 0);
-
-            db.update(TABLE_NAME, values, KEY_PKGNAME + " = ?", new String[]{packageName});
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            // Ignored
-        } finally {
-            db.endTransaction();
-        }
-    }
-
     public boolean isPackageHidden(@NonNull String packageName) {
         String query = String.format("SELECT * FROM %s WHERE %s = ? AND %s = ?", TABLE_NAME,
                 KEY_PKGNAME, KEY_HIDDEN);
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, new String[]{packageName, String.valueOf(1)});
-        boolean result = false;
-        try {
-            result = cursor.getCount() != 0;
-        } catch (Exception e) {
-            // Ignored
-        } finally {
-            if (cursor != null && !cursor.isClosed()) {
-                cursor.close();
-            }
-        }
-
-        return result;
-    }
-
-    public boolean isPackageProtected(@NonNull String packageName) {
-        String query = String.format("SELECT * FROM %s WHERE %s = ? AND %s = ?", TABLE_NAME,
-                KEY_PKGNAME, KEY_PROTECTED);
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, new String[]{packageName, String.valueOf(1)});
         boolean result = false;

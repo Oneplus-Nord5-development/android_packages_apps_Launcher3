@@ -15,9 +15,6 @@
  */
 package com.android.launcher3.lineage.trust;
 
-import static com.android.launcher3.lineage.trust.db.TrustComponent.Kind.HIDDEN;
-import static com.android.launcher3.lineage.trust.db.TrustComponent.Kind.PROTECTED;
-
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -29,7 +26,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,7 +41,6 @@ import com.android.launcher3.AppFilter;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
-import com.android.launcher3.lineage.LineageUtils;
 import com.android.launcher3.lineage.trust.db.TrustComponent;
 import com.android.launcher3.lineage.trust.db.TrustDatabaseHelper;
 
@@ -81,8 +76,7 @@ public class TrustAppsActivity extends Activity implements
         mLoadingView.setVisibility(View.VISIBLE);
         mProgressBar = findViewById(R.id.hidden_apps_progress_bar);
 
-        final boolean hasSecureKeyguard = LineageUtils.hasSecureKeyguard(this);
-        mAdapter = new TrustAppsAdapter(this, hasSecureKeyguard);
+        mAdapter = new TrustAppsAdapter(this);
         mDbHelper = TrustDatabaseHelper.getInstance(this);
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -118,12 +112,7 @@ public class TrustAppsActivity extends Activity implements
 
     @Override
     public void onHiddenItemChanged(@NonNull TrustComponent component) {
-        new UpdateItemTask(mDbHelper, this, HIDDEN).execute(component);
-    }
-
-    @Override
-    public void onProtectedItemChanged(@NonNull TrustComponent component) {
-        new UpdateItemTask(mDbHelper, this, PROTECTED).execute(component);
+        new UpdateItemTask(mDbHelper, this).execute(component);
     }
 
     @Override

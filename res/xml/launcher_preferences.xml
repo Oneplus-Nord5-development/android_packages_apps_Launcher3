@@ -85,7 +85,7 @@
 
     <Preference
         android:key="pref_trust_apps"
-        android:title="@string/trust_apps_manager_name" />
+        android:title="@string/hidden_apps_manager_name" />
 
     <androidx.preference.PreferenceScreen
         android:key="pref_suggestions"
