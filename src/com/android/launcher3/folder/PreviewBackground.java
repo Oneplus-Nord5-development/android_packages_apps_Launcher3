@@ -44,6 +44,7 @@ import android.view.View;
 import android.view.animation.Interpolator;
 
 import androidx.annotation.VisibleForTesting;
+import androidx.core.graphics.ColorUtils;
 
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
@@ -107,7 +108,6 @@ public class PreviewBackground extends DelegatedCellDrawing {
     private static final int BG_OPACITY = 255;
     private static final int MAX_BG_OPACITY = 255;
     private static final int SHADOW_OPACITY = 40;
-
     @VisibleForTesting protected ValueAnimator mScaleAnimator;
     private ObjectAnimator mStrokeAlphaAnimator;
     private ObjectAnimator mShadowAnimator;
@@ -115,6 +115,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
     @VisibleForTesting protected boolean mIsAccepting;
     @VisibleForTesting protected boolean mIsHovered;
     @VisibleForTesting protected boolean mIsHoveredOrAnimating;
+    private boolean mIsBackgroundBlurEnabled;
 
     private static final Property<PreviewBackground, Integer> STROKE_ALPHA =
             new Property<PreviewBackground, Integer>(Integer.class, "strokeAlpha") {
@@ -296,7 +297,48 @@ public class PreviewBackground extends DelegatedCellDrawing {
     }
 
     public int getBgColor() {
-        return mBgColor;
+        if (!mIsBackgroundBlurEnabled) {
+            return mBgColor;
+        }
+        return ColorUtils.setAlphaComponent(mBgColor, 
+                Math.min(160, android.graphics.Color.alpha(mBgColor)));
+    }
+
+    public void setBackgroundBlurEnabled(boolean isEnabled) {
+        if (mIsBackgroundBlurEnabled == isEnabled) {
+            return;
+        }
+        mIsBackgroundBlurEnabled = isEnabled;
+        invalidate();
+    }
+
+    public void getBackgroundSurfaceBounds(Rect outBounds) {
+        if (mFolderStyle == LauncherSettings.Favorites.FOLDER_STYLE_GRID) {
+            float size = previewSize * mScale;
+            float offset = (previewSize - size) / 2;
+            int left = Math.round(getOffsetX() + offset);
+            int top = Math.round(getOffsetY() + offset);
+            outBounds.set(left, top, Math.round(left + size), Math.round(top + size));
+            return;
+        }
+
+        int left = Math.round(getOffsetX());
+        int top = Math.round(getOffsetY());
+        int size = getScaledRadius() * 2;
+        outBounds.set(left, top, left + size, top + size);
+    }
+
+    public float getBackgroundBlurCornerRadius() {
+        if (mFolderStyle == LauncherSettings.Favorites.FOLDER_STYLE_GRID) {
+            return previewSize * 0.15f;
+        }
+
+        ShapeDelegate shape = getShape();
+        if (shape instanceof ShapeDelegate.RoundedSquare) {
+            return getScaledRadius()
+                    * ((ShapeDelegate.RoundedSquare) shape).getRadiusRatio();
+        }
+        return 0f;
     }
 
     public void drawBackground(Canvas canvas) {

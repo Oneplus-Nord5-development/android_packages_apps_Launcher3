@@ -346,6 +346,7 @@
 
     <dimen name="folder_content_padding_left_right">8dp</dimen>
     <dimen name="folder_content_padding_top">16dp</dimen>
+    <dimen name="folder_background_blur_radius">30dp</dimen>
 
     <!-- Sizes for managed profile badges -->
     <dimen name="profile_badge_size">24dp</dimen>

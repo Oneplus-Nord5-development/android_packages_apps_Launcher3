@@ -63,7 +63,12 @@ data class FolderAnimationData(
 
             // Get items in Preview and their scaling
             val itemsInPreview: List<View> = getPreviewIconsOnPage(this, 0)
-            val previewScale: Float = folderIcon.layoutRule.scaleForItem(itemsInPreview.size, 0)
+            val previewScale: Float =
+                if (itemsInPreview.isNotEmpty()) {
+                    folderIcon.layoutRule.scaleForItem(itemsInPreview.size, 0)
+                } else {
+                    1f
+                }
             val previewSize: Float = folderIcon.layoutRule.iconSize * previewScale
 
             // Get scale and position of FolderIcon relative to DragLayer
@@ -74,9 +79,19 @@ data class FolderAnimationData(
                     folderIconWorkspacePosition,
                 )
             val scaledFolderRadius: Int = previewBackground.scaledRadius
-            val baseIconSize: Float = getBubbleTextView(itemsInPreview[0]).iconSize.toFloat()
+            val baseIconSize: Float =
+                if (itemsInPreview.isNotEmpty()) {
+                    getBubbleTextView(itemsInPreview[0]).iconSize.toFloat()
+                } else {
+                    folderIcon.layoutRule.iconSize.toFloat()
+                }
             val initialFolderSize = (scaledFolderRadius * 2) * scaleRelativeToDragLayer
-            val initialFolderScale = previewSize / baseIconSize * scaleRelativeToDragLayer
+            val initialFolderScale =
+                if (itemsInPreview.isNotEmpty()) {
+                    previewSize / baseIconSize * scaleRelativeToDragLayer
+                } else {
+                    scaleRelativeToDragLayer
+                }
 
             // Get offsets for Previews and Content
             val initialPreviewItemOffsetX =
