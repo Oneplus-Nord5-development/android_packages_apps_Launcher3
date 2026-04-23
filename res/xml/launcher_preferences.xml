@@ -66,6 +66,13 @@
         launcher:logIdOn="615"
         launcher:logIdOff="616" />
 
+    <SwitchPreferenceCompat
+        android:key="pref_recents_clear_all_at_bottom"
+        android:title="@string/pref_recents_clear_all_at_bottom_title"
+        android:summary="@string/pref_recents_clear_all_at_bottom_summary"
+        android:defaultValue="false"
+        android:persistent="true" />
+
     <androidx.preference.SeekBarPreference
         android:key="pref_transition_animation_scale"
         android:title="@string/pref_transition_animation_scale_title"
