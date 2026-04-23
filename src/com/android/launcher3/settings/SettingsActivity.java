@@ -230,17 +230,12 @@ public class SettingsActivity extends FragmentActivity
             getPreferenceManager().setSharedPreferencesName(LauncherFiles.SHARED_PREFERENCES_KEY);
             setPreferencesFromResource(R.xml.launcher_preferences, rootKey);
 
-            PreferenceScreen screen = getPreferenceScreen();
-            for (int i = screen.getPreferenceCount() - 1; i >= 0; i--) {
-                Preference preference = screen.getPreference(i);
-                if (!initPreference(preference)) {
-                    screen.removePreference(preference);
-                }
-            }
+            initPreferencesRecursively(getPreferenceScreen());
 
             // If the target preference is not in the current preference screen, find the parent
             // preference screen that contains the target preference and set it as the preference
             // screen.
+            PreferenceScreen screen = getPreferenceScreen();
             if (mHighLightKey != null
                     && !isKeyInPreferenceGroup(mHighLightKey, screen)) {
                 final PreferenceScreen parentPreferenceScreen =
@@ -256,6 +251,18 @@ public class SettingsActivity extends FragmentActivity
 
             if (getActivity() != null && !TextUtils.isEmpty(getPreferenceScreen().getTitle())) {
                 getActivity().setTitle(getPreferenceScreen().getTitle());
+            }
+        }
+
+        private void initPreferencesRecursively(PreferenceGroup group) {
+            for (int i = group.getPreferenceCount() - 1; i >= 0; i--) {
+                Preference preference = group.getPreference(i);
+                if (preference instanceof PreferenceGroup) {
+                    initPreferencesRecursively((PreferenceGroup) preference);
+                }
+                if (!initPreference(preference)) {
+                    group.removePreference(preference);
+                }
             }
         }
 
@@ -322,9 +329,13 @@ public class SettingsActivity extends FragmentActivity
          * will remove that preference from the list.
          */
         protected boolean initPreference(Preference preference) {
+            String key = preference.getKey();
+            if (key == null) {
+                return true;
+            }
             DisplayController.Info info = DisplayController.INSTANCE.get(getContext()).getInfo();
             LauncherApps launcherApps = getContext().getSystemService(LauncherApps.class);
-            switch (preference.getKey()) {
+            switch (key) {
                 case NOTIFICATION_DOTS_PREFERENCE_KEY:
                     return BuildConfig.NOTIFICATION_DOTS_ENABLED;
                 case ALLOW_ROTATION_PREFERENCE_KEY:
