@@ -239,8 +239,8 @@ public class BaseDepthController {
             return;
         }
         mCurrentBlur = newBlur;
-        Log.v(TAG, "Applying blur: " + mCurrentBlur + " to " + blurSurface + " applyImmediately: "
-                + applyImmediately);
+        // Log.v(TAG, "Applying blur: " + mCurrentBlur + " to " + blurSurface + " applyImmediately: "
+        //         + applyImmediately);
 
         if (surfaceTransaction == null) {
             surfaceTransaction = new SurfaceTransaction();
@@ -322,11 +322,11 @@ public class BaseDepthController {
                 ? RenderEffect.createBlurEffect(mCurrentBlur, mCurrentBlur, Shader.TileMode.DECAL)
                 // If blur is not desired, clear the blur effect from the depth targets.
                 : null;
-        Log.d(TAG, "shouldBlurWorkspace: " + shouldBlurWorkspace
-                + " targetState: " + targetState
-                + " currentStableState: " + stateManager.getCurrentStableState()
-                + " mCurrentBlur: " + mCurrentBlur
-                + " mLauncher.getDepthBlurTargets(): " + mLauncher.getDepthBlurTargets());
+        // Log.d(TAG, "shouldBlurWorkspace: " + shouldBlurWorkspace
+        //         + " targetState: " + targetState
+        //         + " currentStableState: " + stateManager.getCurrentStableState()
+        //         + " mCurrentBlur: " + mCurrentBlur
+        //         + " mLauncher.getDepthBlurTargets(): " + mLauncher.getDepthBlurTargets());
         mLauncher.getDepthBlurTargets().forEach(target -> target.setRenderEffect(blurEffect));
         return shouldBlurWorkspace;
     }
