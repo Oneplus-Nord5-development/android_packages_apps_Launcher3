@@ -80,6 +80,11 @@
             android:defaultValue="true"
             android:persistent="true" />
 
+        <Preference
+            android:key="pref_quickspace_category"
+            android:title="@string/quickspace_category_title"
+            android:fragment="com.android.launcher3.settings.SettingsActivity$QuickSpaceSettingsFragment" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

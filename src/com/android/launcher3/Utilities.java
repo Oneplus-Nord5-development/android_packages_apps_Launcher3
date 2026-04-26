@@ -150,7 +150,7 @@ public final class Utilities {
     public static final boolean IS_DEBUG_DEVICE = BuildConfig.IS_DEBUG_DEVICE;
 
     public static boolean qsbOnFirstScreen() {
-        return !injectableModelItems() && BuildConfig.QSB_ON_FIRST_SCREEN;
+        return BuildConfig.USE_QUICKSPACE_VIEW;
     }
 
     public static final int TRANSLATE_UP = 0;
@@ -168,6 +168,14 @@ public final class Utilities {
         Configuration configuration = context.getResources().getConfiguration();
         int nightMode = configuration.uiMode & Configuration.UI_MODE_NIGHT_MASK;
         return nightMode == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    public static boolean isGSAEnabled(Context context) {
+        try {
+            return context.getPackageManager().getApplicationInfo("com.google.android.googlequicksearchbox", 0).enabled;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static boolean sIsRunningInTestHarness = ActivityManager.isRunningInTestHarness();
