@@ -248,6 +248,24 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                         .apply { duration = animationData.defaultDuration.toLong() }
                 )
 
+                if (animationData.isEnlargedIcon) {
+                    folder.content.alpha = if (isOpening) 0f else 1f
+                    folder.mFooter.alpha = if (isOpening) 0f else 1f
+                    playSpringAnimation(
+                        context = folder.context,
+                        animatorSet = animatorSet,
+                        isOpening = isOpening,
+                        startDelay = 0,
+                        stiffness = STIFFNESS_ALPHA,
+                        damping = DAMPING_ALPHA,
+                        startValue = 0f,
+                        endValue = 1f,
+                        minVisibleChange = MIN_VISIBLE_CHANGE_ALPHA,
+                        property = View.ALPHA,
+                        view = folder.content,
+                    )
+                }
+
                 val footerAlphaDuration: Int
                 var footerStartDelay = 0
                 val isLargeFolder = folder.itemCount > MAX_NUM_ITEMS_IN_PREVIEW

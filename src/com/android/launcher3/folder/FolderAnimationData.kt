@@ -20,6 +20,7 @@ import android.graphics.Rect
 import android.view.View
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
+import com.android.launcher3.LauncherSettings
 import com.android.launcher3.folder.FolderAnimationSpringBuilderManager.Companion.getBubbleTextView
 import com.android.launcher3.folder.FolderAnimationSpringBuilderManager.Companion.getPreviewIconsOnPage
 import com.android.launcher3.views.BaseDragLayer
@@ -52,6 +53,8 @@ data class FolderAnimationData(
     val contentOffsetY: Int,
     /** default duration */
     val defaultDuration: Int,
+    /** is enlarged icon */
+    val isEnlargedIcon: Boolean,
 ) {
 
     companion object Factory {
@@ -86,11 +89,16 @@ data class FolderAnimationData(
                     folderIcon.layoutRule.iconSize.toFloat()
                 }
             val initialFolderSize = (scaledFolderRadius * 2) * scaleRelativeToDragLayer
+            val isEnlargedIcon = folderIcon.mInfo != null && folderIcon.mInfo.spanX > 1 && folderIcon.mInfo.spanY > 1
+            val isCoverStyle = folderIcon.folderStyle == LauncherSettings.Favorites.FOLDER_STYLE_COVER
+
             val initialFolderScale =
-                if (itemsInPreview.isNotEmpty()) {
-                    previewSize / baseIconSize * scaleRelativeToDragLayer
-                } else {
+                if (isCoverStyle) {
                     scaleRelativeToDragLayer
+                } else if (isEnlargedIcon || itemsInPreview.isEmpty()) {
+                    0.9f
+                } else {
+                    previewSize / baseIconSize * scaleRelativeToDragLayer
                 }
 
             // Get offsets for Previews and Content
@@ -139,6 +147,7 @@ data class FolderAnimationData(
                 contentOffsetY = contentOffsetY,
                 defaultDuration =
                     content.resources.getInteger(R.integer.config_materialFolderExpandDuration),
+                isEnlargedIcon = isEnlargedIcon,
             )
         }
     }

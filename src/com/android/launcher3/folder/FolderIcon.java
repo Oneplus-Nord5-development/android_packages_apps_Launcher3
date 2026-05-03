@@ -744,17 +744,15 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         LauncherPrefs.get(getContext()).addListener(this, LauncherPrefs.FOLDER_BACKGROUND_BLUR);
-        UI_HELPER_EXECUTOR.execute(() ->
-                CrossWindowBlurListeners.getInstance().addListener(
-                        getContext().getMainExecutor(), mCrossWindowBlurListener));
+        CrossWindowBlurListeners.getInstance().addListener(
+                getContext().getMainExecutor(), mCrossWindowBlurListener);
         updateBackgroundBlurState();
     }
 
     @Override
     protected void onDetachedFromWindow() {
         LauncherPrefs.get(getContext()).removeListener(this, LauncherPrefs.FOLDER_BACKGROUND_BLUR);
-        UI_HELPER_EXECUTOR.execute(() ->
-                CrossWindowBlurListeners.getInstance().removeListener(mCrossWindowBlurListener));
+        CrossWindowBlurListeners.getInstance().removeListener(mCrossWindowBlurListener);
         clearBackgroundBlurDrawable();
         super.onDetachedFromWindow();
     }
@@ -789,9 +787,6 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         }
 
         boolean hasBlurDrawable = ensureBackgroundBlurDrawable();
-        if (!hasBlurDrawable && getViewRootImpl() == null) {
-            post(this::updateBackgroundBlurState);
-        }
         mBackground.setBackgroundBlurEnabled(hasBlurDrawable);
         updateBackgroundBlurVisibility();
         invalidate();

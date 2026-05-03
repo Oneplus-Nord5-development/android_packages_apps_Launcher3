@@ -42,10 +42,29 @@ class FolderAnimationSpringBuilderManager(
     private val launcherDelegate: LauncherDelegate,
 ) : FolderAnimationCreator {
     override fun createAnimatorSet(isOpening: Boolean): AnimatorSet {
-        resetLauncherScale(launcherDelegate.launcher?.workspace, launcherDelegate.launcher?.hotseat)
+        val workspace = launcherDelegate.launcher?.workspace
+        val hotseat = launcherDelegate.launcher?.hotseat
+        val originalWorkspaceScaleX = workspace?.scaleX ?: 1f
+        val originalWorkspaceScaleY = workspace?.scaleY ?: 1f
+        val originalHotseatScaleX = hotseat?.scaleX ?: 1f
+        val originalHotseatScaleY = hotseat?.scaleY ?: 1f
+
+        resetLauncherScale(workspace, hotseat)
         val folderAnimData: FolderAnimationData = folder.getAnimationData(isOpening)
         val clipRevealData: ClipRevealData = folder.getClipRevealData(shapeDelegate, folderAnimData)
         val iconAnimData: List<IconAnimationData> = folder.getIconAnimationDataList(folderAnimData)
+
+        if (!isOpening) {
+            workspace?.apply {
+                scaleX = originalWorkspaceScaleX
+                scaleY = originalWorkspaceScaleY
+            }
+            hotseat?.apply {
+                scaleX = originalHotseatScaleX
+                scaleY = originalHotseatScaleY
+            }
+        }
+
         return FolderSpringAnimatorSet.build(
                 folder = folder,
                 launcherDelegate = launcherDelegate,
