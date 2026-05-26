@@ -128,6 +128,13 @@
             android:defaultValue="false"
             android:persistent="true" />
 
+        <SwitchPreferenceCompat
+            android:key="pref_recents_meminfo"
+            android:title="@string/recents_meminfo_title"
+            android:summary="@string/recents_meminfo_summary"
+            android:defaultValue="false"
+            android:persistent="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
