@@ -37,6 +37,7 @@ import com.android.launcher3.Utilities.isDarkTheme
 import com.android.launcher3.anim.SpringAnimationBuilder
 import com.android.launcher3.apppairs.AppPairIcon
 import com.android.launcher3.folder.ClippedFolderIconLayoutRule.MAX_NUM_ITEMS_IN_PREVIEW
+import com.android.launcher3.util.Themes
 
 /** Holder for Animators created from [FolderAnimationSpringBuilderManager] */
 class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
@@ -233,8 +234,8 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                 val folderBackground = folder.background as GradientDrawable
                 // Set up the Folder background.
                 val isOpening = animationData.isOpening
-                val initialColor = folder.getPreviewBackgroundColor()
-                val finalColor = folder.getFolderBackgroundColor()
+                val initialColor = Themes.getAttrColor(context, R.attr.folderPreviewColor)
+                val finalColor = Themes.getAttrColor(context, R.attr.folderBackgroundColor)
                 folderBackground.mutate()
                 folderBackground.setColor(if (isOpening) initialColor else finalColor)
                 // TODO: convert to spring animation?
@@ -247,24 +248,6 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                         )
                         .apply { duration = animationData.defaultDuration.toLong() }
                 )
-
-                if (animationData.isEnlargedIcon) {
-                    folder.content.alpha = if (isOpening) 0f else 1f
-                    folder.mFooter.alpha = if (isOpening) 0f else 1f
-                    playSpringAnimation(
-                        context = folder.context,
-                        animatorSet = animatorSet,
-                        isOpening = isOpening,
-                        startDelay = 0,
-                        stiffness = STIFFNESS_ALPHA,
-                        damping = DAMPING_ALPHA,
-                        startValue = 0f,
-                        endValue = 1f,
-                        minVisibleChange = MIN_VISIBLE_CHANGE_ALPHA,
-                        property = View.ALPHA,
-                        view = folder.content,
-                    )
-                }
 
                 val footerAlphaDuration: Int
                 var footerStartDelay = 0

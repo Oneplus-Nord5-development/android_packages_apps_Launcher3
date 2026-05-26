@@ -269,7 +269,6 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
         @JvmField val SHORT_PARALLAX = backedUpItem("pref_short_parallax", false)
         @JvmField val SHOW_DESKTOP_LABELS = backedUpItem("pref_desktop_show_labels", true)
         @JvmField val SHOW_DRAWER_LABELS = backedUpItem("pref_drawer_show_labels", true)
-        @JvmField val FOLDER_BACKGROUND_BLUR = backedUpItem("pref_folder_blur", false)
         @JvmField val SHOW_QUICKSPACE = backedUpItem("pref_quickspace", true)
         @JvmField val SHOW_QUICKSPACE_WEATHER = backedUpItem("pref_quickspace_weather", true)
         @JvmField val SHOW_QUICKSPACE_WEATHER_CITY = backedUpItem("pref_quickspace_weather_city", false)

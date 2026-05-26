@@ -64,10 +64,8 @@ class FolderOpenCloseAnimationListener(val folder: Folder, val isOpening: Boolea
             translationZ = 0.0f
             content.scaleX = 1f
             content.scaleY = 1f
-            content.alpha = 1f
             mFooter.scaleX = 1f
             mFooter.scaleY = 1f
-            mFooter.alpha = 1f
             mFooter.translationX = 0f
             folderName.alpha = 1f
             content.setClipPath(null)

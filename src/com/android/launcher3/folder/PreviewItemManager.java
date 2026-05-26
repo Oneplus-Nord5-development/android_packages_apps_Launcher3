@@ -111,7 +111,6 @@ public class PreviewItemManager {
     private float mCurrentPageItemsTransX = 0;
     private boolean mShouldSlideInFirstPage;
     private final Paint mIndicatorPaint;
-    private final java.util.Map<ItemInfo, Drawable> mMiniIconCache = new java.util.HashMap<>();
 
     static final int INITIAL_ITEM_ANIMATION_DURATION = 350;
     private static final int FINAL_ITEM_ANIMATION_DURATION = 200;
@@ -145,7 +144,7 @@ public class PreviewItemManager {
     }
 
     public boolean getPreviewItemBounds(ItemInfo item, Rect outBounds) {
-        PreviewItemDrawingParams params = findItemParams(candidate -> candidate == item, true /* includeHidden */);
+        PreviewItemDrawingParams params = findVisibleItemParams(candidate -> candidate == item);
         if (params == null) {
             outBounds.setEmpty();
             return false;
@@ -370,14 +369,9 @@ public class PreviewItemManager {
         int drawn = 0;
         for (int itemIdx = startIndex; itemIdx < items.size() && drawn < 4; itemIdx++) {
             ItemInfo item = items.get(itemIdx);
-            Drawable icon = mMiniIconCache.get(item);
-            if (icon == null && !mMiniIconCache.containsKey(item)) {
-                if (item instanceof ItemInfoWithIcon) {
-                    icon = ((ItemInfoWithIcon) item).newIcon(mContext, FLAG_THEMED);
-                } else {
-                    icon = createDrawableForItem(item);
-                }
-                mMiniIconCache.put(item, icon);
+            Drawable icon = null;
+            if (item instanceof ItemInfoWithIcon) {
+                icon = ((ItemInfoWithIcon) item).newIcon(mContext, FLAG_THEMED);
             }
 
             if (icon == null) {
@@ -600,7 +594,6 @@ public class PreviewItemManager {
         int numOfPrevItemsAux = mFirstPageParams.size();
         buildParamsForPage(0, mFirstPageParams, animate);
         mNumOfPrevItems = numOfPrevItemsAux;
-        mMiniIconCache.clear();
     }
 
     void updatePreviewItems(Predicate<ItemInfo> itemCheck) {

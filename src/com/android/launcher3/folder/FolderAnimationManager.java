@@ -51,6 +51,7 @@ import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
+import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.BaseDragLayer;
 
 import java.util.List;
@@ -153,13 +154,12 @@ public class FolderAnimationManager implements FolderAnimationCreator {
         boolean isEnlargedIcon = mFolderIcon.mInfo != null
                 && mFolderIcon.mInfo.spanX > 1
                 && mFolderIcon.mInfo.spanY > 1;
-        boolean isCoverStyle = mFolderIcon.getFolderStyle()
-                == LauncherSettings.Favorites.FOLDER_STYLE_COVER;
+        boolean isCoverStyle = mFolderIcon.getFolderStyle() == LauncherSettings.Favorites.FOLDER_STYLE_COVER;
 
         float initialScale;
         if (isCoverStyle) {
             initialScale = scaleRelativeToDragLayer;
-        } else if (isEnlargedIcon || itemsInPreview.isEmpty()) {
+        } else if (isEnlargedIcon) {
             initialScale = 0.9f;
         } else {
             float previewScale = rule.scaleForItem(itemsInPreview.size(), 0);
@@ -201,8 +201,8 @@ public class FolderAnimationManager implements FolderAnimationCreator {
         final float yDistance = initialY - lp.y;
 
         // Set up the Folder background.
-        final int initialColor = mFolder.getPreviewBackgroundColor();
-        final int finalColor = mFolder.getFolderBackgroundColor();
+        final int initialColor = Themes.getAttrColor(mContext, R.attr.folderPreviewColor);
+        final int finalColor = Themes.getAttrColor(mContext, R.attr.folderBackgroundColor);
 
         mFolderBackground.mutate();
         mFolderBackground.setColor(mIsOpening ? initialColor : finalColor);

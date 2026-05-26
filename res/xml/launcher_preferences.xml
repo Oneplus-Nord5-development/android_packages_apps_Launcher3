@@ -62,13 +62,6 @@
             launcher:logIdOff="616" />
 
         <SwitchPreferenceCompat
-            android:key="pref_folder_blur"
-            android:title="@string/pref_folder_blur_title"
-            android:summary="@string/pref_folder_blur_summary"
-            android:defaultValue="false"
-            android:persistent="true" />
-
-        <SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="pref_enable_minus_one"
             android:summary="@string/pref_show_google_now_summary"
