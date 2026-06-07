@@ -74,6 +74,7 @@ import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.InstantAppResolver;
 import com.android.launcher3.util.PackageUserKey;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.widget.WidgetSections;
 import com.android.launcher3.widget.WidgetSections.WidgetSection;
 
@@ -618,21 +619,28 @@ public class IconCache extends BaseIconCache {
         }
 
         // apply package override
-        if (!Flags.enableSupportForArchiving() || !info.isArchived()) {
-            return;
+        if (Flags.enableSupportForArchiving() && info.isArchived()) {
+            String targetPackage = info.getTargetPackage();
+            if (targetPackage != null) {
+                CacheEntry packageEntry = getInMemoryPackageEntryLocked(targetPackage, info.user);
+                if (packageEntry != null && !packageEntry.bitmap.isLowRes()) {
+                    info.appTitle = Utilities.trim(info.title);
+                    info.title = Utilities.trim(packageEntry.title);
+                    info.contentDescription = packageEntry.contentDescription;
+                    info.bitmap = packageEntry.bitmap;
+                }
+            }
         }
-        String targetPackage = info.getTargetPackage();
-        if (targetPackage == null) {
-            return;
+
+        // Apply custom label override if present in SharedPreferences
+        ComponentKey key = info.getComponentKey();
+        if (key != null) {
+            String customLabel = LauncherPrefs.getPrefs(context).getString("custom_label_" + key.toString(), null);
+            if (!TextUtils.isEmpty(customLabel)) {
+                info.title = customLabel;
+                info.contentDescription = getUserBadgedLabel(customLabel, info.user);
+            }
         }
-        CacheEntry packageEntry = getInMemoryPackageEntryLocked(targetPackage, info.user);
-        if (packageEntry == null || packageEntry.bitmap.isLowRes()) {
-            return;
-        }
-        info.appTitle = Utilities.trim(info.title);
-        info.title = Utilities.trim(packageEntry.title);
-        info.contentDescription = packageEntry.contentDescription;
-        info.bitmap = packageEntry.bitmap;
     }
 
     public void updateSessionCache(PackageUserKey key, PackageInstaller.SessionInfo info) {

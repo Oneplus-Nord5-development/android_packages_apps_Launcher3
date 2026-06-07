@@ -3,6 +3,7 @@ package com.android.launcher3.popup;
 import static com.android.launcher3.AbstractFloatingView.TYPE_FOLDER;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DISMISS_PREDICTION_UNDO;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_INSTALL_SYSTEM_SHORTCUT_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_UNINSTALL_SYSTEM_SHORTCUT_TAP;
@@ -11,18 +12,28 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_WIDGETS_TAP;
 import static com.android.launcher3.widget.picker.model.data.WidgetPickerDataUtils.findAllWidgetsForPackageUser;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.graphics.Rect;
 import android.os.Process;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.os.UserHandle;
 import android.util.Log;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.content.SharedPreferences;
+import android.view.LayoutInflater;
+import com.android.launcher3.LauncherPrefs;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -260,6 +271,111 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                 this.containsMultipleTasks = containsMultipleTasks;
                 this.taskTitle = taskTitle;
                 this.nodeId = nodeId;
+            }
+        }
+    }
+
+    public static final Factory<ActivityContext> EDIT_LABEL = (context, itemInfo, originalView) -> {
+        if (originalView == null || !(itemInfo instanceof ItemInfoWithIcon)) {
+            return null;
+        }
+        return new EditLabel<>(context, (ItemInfoWithIcon) itemInfo, originalView);
+    };
+
+    public static class EditLabel<T extends ActivityContext> extends SystemShortcut<T> {
+
+        public EditLabel(T target, ItemInfoWithIcon itemInfo, @NonNull View originalView) {
+            super(R.drawable.gm_edit_24, R.string.edit_label, target, itemInfo, originalView);
+        }
+
+        @Override
+        public void onClick(View view) {
+            Context activityContext = mTarget.asContext();
+            if (!Utilities.isWorkspaceEditAllowed(activityContext)) {
+                return;
+            }
+            ComponentKey key = mItemInfo.getComponentKey();
+            if (key == null) {
+                return;
+            }
+            AbstractFloatingView.closeAllOpenViews(mTarget);
+
+            Context themeWrapper = new android.view.ContextThemeWrapper(activityContext, R.style.EditLabelTheme);
+            View dialogView = LayoutInflater.from(themeWrapper)
+                    .inflate(R.layout.dialog_edit_label, null);
+            TextInputLayout inputLayout = dialogView.findViewById(R.id.edit_label_input_layout);
+            TextInputEditText input = dialogView.findViewById(R.id.edit_label_input);
+
+            CharSequence currentLabel = TextUtils.isEmpty(mItemInfo.title)
+                    ? mItemInfo.appTitle : mItemInfo.title;
+            if (currentLabel != null) {
+                input.setText(currentLabel);
+                input.setSelection(input.length());
+            }
+
+            new android.app.AlertDialog.Builder(themeWrapper)
+                    .setTitle(R.string.edit_label)
+                    .setView(dialogView)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                        CharSequence newLabel = input.getText();
+                        String newLabelStr = newLabel == null ? "" : newLabel.toString().trim();
+                        String prefKey = "custom_label_" + key.toString();
+                        SharedPreferences prefs = LauncherPrefs.getPrefs(activityContext);
+                        if (TextUtils.isEmpty(newLabelStr)) {
+                            prefs.edit().remove(prefKey).apply();
+                        } else {
+                            prefs.edit().putString(prefKey, newLabelStr).apply();
+                        }
+
+                        if (mItemInfo instanceof WorkspaceItemInfo) {
+                            CharSequence dbLabel = TextUtils.isEmpty(newLabelStr) ? mItemInfo.appTitle : newLabelStr;
+                            ((WorkspaceItemInfo) mItemInfo).setTitle(
+                                    dbLabel, activityContext, mTarget.getModelWriter());
+                        } else {
+                            mItemInfo.title = newLabelStr;
+                            mTarget.getModelWriter().notifyItemModified(mItemInfo);
+                        }
+
+                        updateWorkspaceAndAllAppsTitles(activityContext, key, newLabelStr);
+                    })
+                    .show();
+        }
+
+        private void updateWorkspaceAndAllAppsTitles(Context context, ComponentKey key, String newLabel) {
+            if (context instanceof Launcher) {
+                Launcher launcher = (Launcher) context;
+                
+                // 1. Update in-memory AppInfo title in AllAppsStore
+                com.android.launcher3.allapps.AllAppsStore appsStore = launcher.getAppsView().getAppsStore();
+                com.android.launcher3.model.data.AppInfo appInfo = appsStore.getApp(key);
+                if (appInfo != null) {
+                    appInfo.title = newLabel;
+                    appInfo.contentDescription = appsStore.lookUpForUid(key.componentName.getPackageName(), key.user) >= 0
+                            ? launcher.getPackageManager().getUserBadgedLabel(newLabel, key.user)
+                            : newLabel;
+                }
+                
+                // 2. Traverse view hierarchy of launcher's root view to update all matching BubbleTextViews
+                updateTitleInViewHierarchy(launcher.getDragLayer(), key, newLabel);
+            }
+        }
+
+        private void updateTitleInViewHierarchy(View view, ComponentKey key, String newLabel) {
+            if (view instanceof com.android.launcher3.BubbleTextView) {
+                com.android.launcher3.BubbleTextView btv = (com.android.launcher3.BubbleTextView) view;
+                if (btv.getTag() instanceof ItemInfo) {
+                    ItemInfo info = (ItemInfo) btv.getTag();
+                    if (key.equals(info.getComponentKey())) {
+                        info.title = newLabel;
+                        btv.applyLabel(info);
+                    }
+                }
+            } else if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup vg = (android.view.ViewGroup) view;
+                for (int i = 0; i < vg.getChildCount(); i++) {
+                    updateTitleInViewHierarchy(vg.getChildAt(i), key, newLabel);
+                }
             }
         }
     }

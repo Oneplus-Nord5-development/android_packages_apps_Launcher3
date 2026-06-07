@@ -40,6 +40,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -64,6 +65,7 @@ import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.R;
 import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
 import com.android.launcher3.allapps.PrivateProfileManager;
+import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.model.data.AppInfo;
@@ -166,6 +168,38 @@ public class SystemShortcutTest {
         SystemShortcut systemShortcut = SystemShortcut.APP_INFO
                 .getShortcut(mTestContext, mAppInfo, mView);
         assertNotNull(systemShortcut);
+    }
+
+    @Test
+    public void testEditLabelShortcutForWorkspaceItemAndAppInfo() {
+        mAppInfo = new AppInfo();
+        mAppInfo.componentName = new ComponentName(mTestContext, getClass());
+        mAppInfo.intent = new Intent(Intent.ACTION_MAIN)
+                .setComponent(mAppInfo.componentName);
+
+        WorkspaceItemInfo workspaceItemInfo = new WorkspaceItemInfo(mAppInfo);
+        assertNotNull(SystemShortcut.EDIT_LABEL.getShortcut(mTestContext, workspaceItemInfo, mView));
+        assertNotNull(SystemShortcut.EDIT_LABEL.getShortcut(mTestContext, mAppInfo, mView));
+    }
+
+    @Test
+    public void testWorkspaceItemSetTitleUpdatesFieldsAndModel() {
+        mAppInfo = new AppInfo();
+        mAppInfo.componentName = new ComponentName(mTestContext, getClass());
+        mAppInfo.intent = new Intent(Intent.ACTION_MAIN)
+            .setComponent(mAppInfo.componentName);
+        WorkspaceItemInfo workspaceItemInfo = new WorkspaceItemInfo(mAppInfo);
+        workspaceItemInfo.title = "Original label";
+        workspaceItemInfo.appTitle = "App label";
+
+        ModelWriter modelWriter = mock(ModelWriter.class);
+
+        workspaceItemInfo.setTitle("  New label  ", mTestContext, modelWriter);
+
+        assertTrue(workspaceItemInfo.title.toString().equals("New label"));
+        assertNotNull(workspaceItemInfo.contentDescription);
+        assertTrue(workspaceItemInfo.contentDescription.toString().equals("New label"));
+        verify(modelWriter).updateItemInDatabase(workspaceItemInfo);
     }
 
 

@@ -57,6 +57,7 @@ import static com.android.launcher3.popup.SystemShortcut.ADD_TO_HOME_SCREEN;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.BUBBLE_SHORTCUT;
 import static com.android.launcher3.popup.SystemShortcut.CUSTOMIZE_FOLDER;
+import static com.android.launcher3.popup.SystemShortcut.EDIT_LABEL;
 import static com.android.launcher3.popup.SystemShortcut.DONT_SUGGEST_APP;
 import static com.android.launcher3.popup.SystemShortcut.ENLARGE;
 import static com.android.launcher3.popup.SystemShortcut.INSTALL;
@@ -546,7 +547,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     public Stream<SystemShortcut.Factory> getSupportedShortcuts(ItemInfo itemInfo) {
         // Order matters as it affects order of appearance in popup container
         List<SystemShortcut.Factory> shortcuts = new ArrayList(Arrays.asList(
-                APP_INFO, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
+                APP_INFO, EDIT_LABEL, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
         int container = itemInfo.container;
         if (canPinAppWithContextMenu()
                 && DisplayController.showDesktopTaskbarForFreeformDisplay(this)

@@ -33,6 +33,7 @@ import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.IconCache;
+import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.util.ApiWrapper;
@@ -228,6 +229,30 @@ public class WorkspaceItemInfo extends ItemInfoWithIcon {
         Person[] persons = ApiWrapper.INSTANCE.get(context).getPersons(shortcutInfo);
         personKeys = persons.length == 0 ? Utilities.EMPTY_STRING_ARRAY
             : Arrays.stream(persons).map(Person::getKey).sorted().toArray(String[]::new);
+    }
+
+    public void setTitle(@Nullable CharSequence title, @NonNull Context context,
+            @Nullable ModelWriter modelWriter) {
+        CharSequence trimmedTitle = title == null ? null : Utilities.trim(title);
+        if (TextUtils.equals(this.title, trimmedTitle)) {
+            return;
+        }
+
+        this.title = trimmedTitle;
+        if (TextUtils.isEmpty(trimmedTitle)) {
+            contentDescription = null;
+        } else {
+            try {
+                contentDescription = context.getPackageManager().getUserBadgedLabel(trimmedTitle,
+                        user);
+            } catch (SecurityException e) {
+                contentDescription = trimmedTitle;
+            }
+        }
+
+        if (modelWriter != null) {
+            modelWriter.updateItemInDatabase(this);
+        }
     }
 
     @Nullable
