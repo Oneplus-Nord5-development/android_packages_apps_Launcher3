@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.groupingBy;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
@@ -639,6 +640,25 @@ public class IconCache extends BaseIconCache {
             if (!TextUtils.isEmpty(customLabel)) {
                 info.title = customLabel;
                 info.contentDescription = getUserBadgedLabel(customLabel, info.user);
+            }
+
+            // Apply custom icon override if present in SharedPreferences
+            String customIconName = LauncherPrefs.getPrefs(context).getString("custom_icon_" + key.toString(), null);
+            if (!TextUtils.isEmpty(customIconName)) {
+                int resId = context.getResources().getIdentifier(customIconName, "drawable", context.getPackageName());
+                if (resId != 0) {
+                    try {
+                        Drawable customDrawable = context.getDrawable(resId);
+                        if (customDrawable != null) {
+                            try (LauncherIcons li = LauncherIcons.obtain(context)) {
+                                info.bitmap = li.createBadgedIconBitmap(customDrawable,
+                                        new BaseIconFactory.IconOptions().setWrapNonAdaptiveIcon(false).setIconScale(1f));
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to load custom icon " + customIconName, e);
+                    }
+                }
             }
         }
     }

@@ -28,6 +28,11 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.widget.HorizontalScrollView;
+import android.graphics.drawable.Drawable;
+import com.android.launcher3.icons.BitmapInfo;
+import com.android.launcher3.icons.LauncherIcons;
 import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import com.android.launcher3.LauncherPrefs;
@@ -284,6 +289,21 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
 
     public static class EditLabel<T extends ActivityContext> extends SystemShortcut<T> {
 
+        private static final String[] CUSTOM_ICON_NAMES = {
+            "ic_custom_phone", "ic_custom_messages", "ic_custom_browser", "ic_custom_camera",
+            "ic_custom_gallery", "ic_custom_music", "ic_custom_calendar", "ic_custom_email",
+            "ic_custom_settings", "ic_custom_games", "ic_custom_contacts", "ic_custom_calculator",
+            "ic_custom_clock", "ic_custom_notes", "ic_custom_files"
+        };
+
+        private static final int[] CUSTOM_ICON_RES_IDS = {
+            R.drawable.ic_custom_phone, R.drawable.ic_custom_messages, R.drawable.ic_custom_browser,
+            R.drawable.ic_custom_camera, R.drawable.ic_custom_gallery, R.drawable.ic_custom_music,
+            R.drawable.ic_custom_calendar, R.drawable.ic_custom_email, R.drawable.ic_custom_settings,
+            R.drawable.ic_custom_games, R.drawable.ic_custom_contacts, R.drawable.ic_custom_calculator,
+            R.drawable.ic_custom_clock, R.drawable.ic_custom_notes, R.drawable.ic_custom_files
+        };
+
         public EditLabel(T target, ItemInfoWithIcon itemInfo, @NonNull View originalView) {
             super(R.drawable.gm_edit_24, R.string.edit_label, target, itemInfo, originalView);
         }
@@ -305,12 +325,51 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                     .inflate(R.layout.dialog_edit_label, null);
             TextInputLayout inputLayout = dialogView.findViewById(R.id.edit_label_input_layout);
             TextInputEditText input = dialogView.findViewById(R.id.edit_label_input);
+            ImageView previewIcon = dialogView.findViewById(R.id.edit_label_icon_preview);
+            LinearLayout pickerLayout = dialogView.findViewById(R.id.edit_label_picker_layout);
 
             CharSequence currentLabel = TextUtils.isEmpty(mItemInfo.title)
                     ? mItemInfo.appTitle : mItemInfo.title;
             if (currentLabel != null) {
                 input.setText(currentLabel);
                 input.setSelection(input.length());
+            }
+
+            // Load original default app icon
+            Drawable tempIcon;
+            try {
+                tempIcon = activityContext.getPackageManager().getActivityIcon(key.componentName);
+            } catch (Exception e) {
+                tempIcon = activityContext.getPackageManager().getDefaultActivityIcon();
+            }
+            final Drawable originalAppIcon = tempIcon;
+
+            // Display current icon in preview
+            Drawable currentIconDrawable = null;
+            if (mItemInfo instanceof ItemInfoWithIcon) {
+                currentIconDrawable = ((ItemInfoWithIcon) mItemInfo).newIcon(activityContext);
+            }
+            if (currentIconDrawable == null) {
+                currentIconDrawable = originalAppIcon;
+            }
+            previewIcon.setImageDrawable(currentIconDrawable);
+
+            // Fetch current custom icon name
+            String currentCustomIcon = LauncherPrefs.getPrefs(activityContext).getString("custom_icon_" + key.toString(), "");
+            final String[] selectedIconName = { currentCustomIcon };
+
+            // Add original default option to picker
+            pickerLayout.addView(createIconPickerItem(themeWrapper, originalAppIcon, "", selectedIconName, previewIcon, pickerLayout, true));
+
+            // Add custom icons to picker
+            for (int resId : CUSTOM_ICON_RES_IDS) {
+                try {
+                    Drawable customIconDrawable = activityContext.getDrawable(resId);
+                    String iconName = activityContext.getResources().getResourceEntryName(resId);
+                    pickerLayout.addView(createIconPickerItem(themeWrapper, customIconDrawable, iconName, selectedIconName, previewIcon, pickerLayout, false));
+                } catch (Exception e) {
+                    Log.e("SystemShortcut", "Failed to load custom icon resource " + resId, e);
+                }
             }
 
             new android.app.AlertDialog.Builder(themeWrapper)
@@ -322,59 +381,148 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                         String newLabelStr = newLabel == null ? "" : newLabel.toString().trim();
                         String prefKey = "custom_label_" + key.toString();
                         SharedPreferences prefs = LauncherPrefs.getPrefs(activityContext);
+                        
+                        // Save label
                         if (TextUtils.isEmpty(newLabelStr)) {
                             prefs.edit().remove(prefKey).apply();
                         } else {
                             prefs.edit().putString(prefKey, newLabelStr).apply();
                         }
 
+                        // Save icon
+                        String newIconName = selectedIconName[0];
+                        String iconPrefKey = "custom_icon_" + key.toString();
+                        if (TextUtils.isEmpty(newIconName)) {
+                            prefs.edit().remove(iconPrefKey).apply();
+                        } else {
+                            prefs.edit().putString(iconPrefKey, newIconName).apply();
+                        }
+
+                        // Generate new BitmapInfo
+                        BitmapInfo newBitmapInfo = null;
+                        if (!TextUtils.isEmpty(newIconName)) {
+                            int resId = activityContext.getResources().getIdentifier(newIconName, "drawable", activityContext.getPackageName());
+                            if (resId != 0) {
+                                Drawable customDrawable = activityContext.getDrawable(resId);
+                                if (customDrawable != null) {
+                                    try (LauncherIcons li = LauncherIcons.obtain(activityContext)) {
+                                        newBitmapInfo = li.createBadgedIconBitmap(customDrawable,
+                                                new com.android.launcher3.icons.BaseIconFactory.IconOptions().setWrapNonAdaptiveIcon(false).setIconScale(1f));
+                                    }
+                                }
+                            }
+                        } else {
+                            try (LauncherIcons li = LauncherIcons.obtain(activityContext)) {
+                                newBitmapInfo = li.createBadgedIconBitmap(originalAppIcon);
+                            }
+                        }
+
                         if (mItemInfo instanceof WorkspaceItemInfo) {
                             CharSequence dbLabel = TextUtils.isEmpty(newLabelStr) ? mItemInfo.appTitle : newLabelStr;
                             ((WorkspaceItemInfo) mItemInfo).setTitle(
                                     dbLabel, activityContext, mTarget.getModelWriter());
+                            if (newBitmapInfo != null) {
+                                ((WorkspaceItemInfo) mItemInfo).bitmap = newBitmapInfo;
+                                mTarget.getModelWriter().updateItemInDatabase(mItemInfo);
+                            }
                         } else {
                             mItemInfo.title = newLabelStr;
+                            if (newBitmapInfo != null && mItemInfo instanceof ItemInfoWithIcon) {
+                                ((ItemInfoWithIcon) mItemInfo).bitmap = newBitmapInfo;
+                            }
                             mTarget.getModelWriter().notifyItemModified(mItemInfo);
                         }
 
-                        updateWorkspaceAndAllAppsTitles(activityContext, key, newLabelStr);
+                        updateWorkspaceAndAllAppsTitlesAndIcons(activityContext, key, newLabelStr, newBitmapInfo);
                     })
                     .show();
         }
 
-        private void updateWorkspaceAndAllAppsTitles(Context context, ComponentKey key, String newLabel) {
+        private View createIconPickerItem(Context context, Drawable drawable, String name,
+                String[] selectedIconName, ImageView previewIcon, LinearLayout parent, boolean isDefault) {
+            ImageView imageView = new ImageView(context);
+            int size = (int) (48 * context.getResources().getDisplayMetrics().density);
+            int margin = (int) (6 * context.getResources().getDisplayMetrics().density);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
+            params.setMargins(margin, margin, margin, margin);
+            imageView.setLayoutParams(params);
+            imageView.setPadding(margin, margin, margin, margin);
+            imageView.setImageDrawable(drawable);
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+            android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+            gd.setColor(0x11000000); // semi-transparent black
+            gd.setCornerRadius(12 * context.getResources().getDisplayMetrics().density);
+            imageView.setBackground(gd);
+
+            boolean isCurrent = isDefault ? TextUtils.isEmpty(selectedIconName[0]) : name.equals(selectedIconName[0]);
+            if (isCurrent) {
+                gd.setStroke((int) (2 * context.getResources().getDisplayMetrics().density), 0xFF3B82F6); // blue border
+            }
+
+            imageView.setOnClickListener(v -> {
+                selectedIconName[0] = isDefault ? "" : name;
+                previewIcon.setImageDrawable(drawable);
+
+                for (int i = 0; i < parent.getChildCount(); i++) {
+                    View child = parent.getChildAt(i);
+                    android.graphics.drawable.GradientDrawable childGd = (android.graphics.drawable.GradientDrawable) child.getBackground();
+                    if (child == imageView) {
+                        childGd.setStroke((int) (2 * context.getResources().getDisplayMetrics().density), 0xFF3B82F6);
+                    } else {
+                        childGd.setStroke(0, 0);
+                    }
+                }
+            });
+            return imageView;
+        }
+
+        private void updateWorkspaceAndAllAppsTitlesAndIcons(Context context, ComponentKey key, String newLabel, BitmapInfo newIcon) {
             if (context instanceof Launcher) {
                 Launcher launcher = (Launcher) context;
                 
-                // 1. Update in-memory AppInfo title in AllAppsStore
+                // 1. Update in-memory AppInfo title and bitmap in AllAppsStore
                 com.android.launcher3.allapps.AllAppsStore appsStore = launcher.getAppsView().getAppsStore();
                 com.android.launcher3.model.data.AppInfo appInfo = appsStore.getApp(key);
                 if (appInfo != null) {
-                    appInfo.title = newLabel;
-                    appInfo.contentDescription = appsStore.lookUpForUid(key.componentName.getPackageName(), key.user) >= 0
-                            ? launcher.getPackageManager().getUserBadgedLabel(newLabel, key.user)
-                            : newLabel;
+                    if (newLabel != null) {
+                        appInfo.title = newLabel;
+                        appInfo.contentDescription = appsStore.lookUpForUid(key.componentName.getPackageName(), key.user) >= 0
+                                ? launcher.getPackageManager().getUserBadgedLabel(newLabel, key.user)
+                                : newLabel;
+                    }
+                    if (newIcon != null) {
+                        appInfo.bitmap = newIcon;
+                    }
                 }
                 
                 // 2. Traverse view hierarchy of launcher's root view to update all matching BubbleTextViews
-                updateTitleInViewHierarchy(launcher.getDragLayer(), key, newLabel);
+                updateTitleAndIconInViewHierarchy(launcher.getDragLayer(), key, newLabel, newIcon);
             }
         }
 
-        private void updateTitleInViewHierarchy(View view, ComponentKey key, String newLabel) {
+        private void updateTitleAndIconInViewHierarchy(View view, ComponentKey key, String newLabel, BitmapInfo newIcon) {
             if (view instanceof com.android.launcher3.BubbleTextView) {
                 com.android.launcher3.BubbleTextView btv = (com.android.launcher3.BubbleTextView) view;
                 if (btv.getTag() instanceof ItemInfo) {
                     ItemInfo info = (ItemInfo) btv.getTag();
                     if (key.equals(info.getComponentKey())) {
-                        info.title = newLabel;
-                        btv.applyLabel(info);
+                        if (info instanceof ItemInfoWithIcon) {
+                            ItemInfoWithIcon iiwi = (ItemInfoWithIcon) info;
+                            if (newLabel != null) {
+                                iiwi.title = newLabel;
+                            }
+                            if (newIcon != null) {
+                                iiwi.bitmap = newIcon;
+                            }
+                            btv.applyIconAndLabel(iiwi);
+                        }
                     }
                 }
             } else if (view instanceof android.view.ViewGroup) {
                 android.view.ViewGroup vg = (android.view.ViewGroup) view;
                 for (int i = 0; i < vg.getChildCount(); i++) {
-                    updateTitleInViewHierarchy(vg.getChildAt(i), key, newLabel);
+                    updateTitleAndIconInViewHierarchy(vg.getChildAt(i), key, newLabel, newIcon);
                 }
             }
         }
