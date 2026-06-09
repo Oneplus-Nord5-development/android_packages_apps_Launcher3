@@ -63,7 +63,7 @@ import androidx.test.filters.SmallTest;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.icons.cache.CachingLogic;
 import com.android.launcher3.icons.cache.IconCacheUpdateHandler;
-import com.android.launcher3.icons.cache.LauncherActivityCachingLogic;
+import com.android.launcher3.icons.CustomLauncherActivityCachingLogic;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.PackageItemInfo;
@@ -181,7 +181,7 @@ public class IconCacheTest {
 
         // Schedule async update and wait for it to complete
         Set<PackageUserKey> updates =
-                executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE);
+                executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE);
 
         // Verify that the icon was not updated and is still in memory cache
         Truth.assertThat(updates).isEmpty();
@@ -233,11 +233,11 @@ public class IconCacheTest {
         assertNotNull(lai);
 
         // Since this is a new update, there should not be any update
-        Truth.assertThat(executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE)).isEmpty();
+        Truth.assertThat(executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE)).isEmpty();
         assertTrue(mIconCache.isItemInDb(new ComponentKey(cn, user)));
 
         // Another update should not cause any changes
-        Truth.assertThat(executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE)).isEmpty();
+        Truth.assertThat(executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE)).isEmpty();
         assertTrue(mIconCache.isItemInDb(new ComponentKey(cn, user)));
     }
 
@@ -251,12 +251,12 @@ public class IconCacheTest {
         assertNotNull(lai);
 
         // Since this is a new update, there should not be any update
-        Truth.assertThat(executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE)).isEmpty();
+        Truth.assertThat(executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE)).isEmpty();
         assertTrue(mIconCache.isItemInDb(new ComponentKey(cn, user)));
 
         // Another update should trigger an update
         lai.getApplicationInfo().sourceDir = "some-random-source-dir";
-        Truth.assertThat(executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE))
+        Truth.assertThat(executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE))
                 .containsExactly(new PackageUserKey(TEST_PACKAGE, user));
         assertTrue(mIconCache.isItemInDb(new ComponentKey(cn, user)));
     }
@@ -271,7 +271,7 @@ public class IconCacheTest {
         assertNotNull(lai);
 
         // Since this is a new update, there should not be any update
-        Truth.assertThat(executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE)).isEmpty();
+        Truth.assertThat(executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE)).isEmpty();
         assertTrue(mIconCache.isItemInDb(new ComponentKey(cn, user)));
 
         // Another update should trigger an update
@@ -279,7 +279,7 @@ public class IconCacheTest {
         LauncherActivityInfo lai2 = mContext.getSystemService(LauncherApps.class)
                 .resolveActivity(makeLaunchIntent(cn2), user);
 
-        Truth.assertThat(executeIconUpdate(lai2, LauncherActivityCachingLogic.INSTANCE)).isEmpty();
+        Truth.assertThat(executeIconUpdate(lai2, CustomLauncherActivityCachingLogic.INSTANCE)).isEmpty();
         assertFalse(mIconCache.isItemInDb(new ComponentKey(cn, user)));
         assertTrue(mIconCache.isItemInDb(new ComponentKey(cn2, user)));
     }
@@ -292,7 +292,7 @@ public class IconCacheTest {
         LauncherActivityInfo lai = mContext.getSystemService(LauncherApps.class)
                 .resolveActivity(makeLaunchIntent(cn), user);
         assertNotNull(lai);
-        executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE);
+        executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE);
 
         AppInfo info  = new AppInfo(mContext, lai, user);
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR, () -> {
@@ -310,7 +310,7 @@ public class IconCacheTest {
         LauncherActivityInfo lai = mContext.getSystemService(LauncherApps.class)
                 .resolveActivity(makeLaunchIntent(cn), user);
         assertNotNull(lai);
-        executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE);
+        executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE);
 
         AppInfo info  = new AppInfo(mContext, lai, user);
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR, () -> {
@@ -328,7 +328,7 @@ public class IconCacheTest {
         LauncherActivityInfo lai = mContext.getSystemService(LauncherApps.class)
                 .resolveActivity(makeLaunchIntent(cn), user);
         assertNotNull(lai);
-        executeIconUpdate(lai, LauncherActivityCachingLogic.INSTANCE);
+        executeIconUpdate(lai, CustomLauncherActivityCachingLogic.INSTANCE);
 
         AppInfo info  = new AppInfo(mContext, lai, user);
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR, () -> {

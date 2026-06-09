@@ -67,6 +67,10 @@ import com.android.launcher3.lineage.trust.TrustAppsActivity;
 import com.android.launcher3.states.RotationHelper;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.SettingsCache;
+import com.android.launcher3.customization.IconDatabase;
+import com.android.launcher3.settings.preference.IconPackPrefSetter;
+import com.android.launcher3.settings.preference.ReloadingListPreference;
+import com.android.launcher3.util.AppReloader;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 import com.android.settingslib.widget.SettingsThemeHelper;
 
@@ -101,6 +105,7 @@ public class SettingsActivity extends FragmentActivity
     private static final String KEY_SUGGESTIONS = "pref_suggestions";
     private static final String SUGGESTIONS_PACKAGE = "com.google.android.as";
     private static final String KEY_TRANSITION_ANIMATION_SCALE = "pref_transition_animation_scale";
+    private static final String KEY_ICON_PACK = "pref_icon_pack";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -400,6 +405,17 @@ public class SettingsActivity extends FragmentActivity
                         return false;
                     }
                     return initTransitionAnimationScalePreference((SeekBarPreference) preference);
+                case KEY_ICON_PACK:
+                    ReloadingListPreference iconPackPref = (ReloadingListPreference) preference;
+                    iconPackPref.setValue(IconDatabase.getGlobal(getActivity()));
+                    iconPackPref.setOnReloadListener(IconPackPrefSetter::new);
+                    iconPackPref.setOnPreferenceChangeListener((pref, val) -> {
+                        IconDatabase.clearAll(getActivity());
+                        IconDatabase.setGlobal(getActivity(), (String) val);
+                        AppReloader.get(getActivity()).reload();
+                        return true;
+                    });
+                    return true;
             }
             return true;
         }

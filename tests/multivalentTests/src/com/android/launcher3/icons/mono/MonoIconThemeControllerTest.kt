@@ -33,7 +33,7 @@ import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.SourceHint
 import com.android.launcher3.icons.ThemedBitmap
-import com.android.launcher3.icons.cache.LauncherActivityCachingLogic
+import com.android.launcher3.icons.CustomLauncherActivityCachingLogic
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.LauncherMultivalentJUnit.Companion.isRunningInRobolectric
 import org.junit.Assert.assertEquals
@@ -57,7 +57,7 @@ class MonoIconThemeControllerTest {
     private val sourceHint =
         SourceHint(
             key = ComponentKey(ComponentName("a", "a"), Process.myUserHandle()),
-            logic = LauncherActivityCachingLogic,
+            logic = CustomLauncherActivityCachingLogic.INSTANCE,
         )
 
     @Test

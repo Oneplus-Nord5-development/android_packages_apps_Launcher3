@@ -739,6 +739,8 @@ public final class Utilities {
         AdaptiveIconDrawable result;
         if (mainIcon instanceof AdaptiveIconDrawable aid) {
             result = aid;
+        } else if ((mainIcon.getChangingConfigurations() & com.android.launcher3.icons.ThirdPartyIconProvider.CONFIG_HINT_NO_WRAP) != 0) {
+            return null;
         } else {
             // Wrap the main icon in AID
             try (LauncherIcons li = LauncherIcons.obtain(context)) {

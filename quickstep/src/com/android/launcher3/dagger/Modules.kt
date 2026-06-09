@@ -36,6 +36,7 @@ import com.android.launcher3.homescreenfiles.HomeScreenFilesUtils
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
+import com.android.launcher3.icons.ThirdPartyIconProvider
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
 import com.android.launcher3.secondarydisplay.SecondaryDisplayDelegate
 import com.android.launcher3.secondarydisplay.SecondaryDisplayQuickstepDelegateImpl

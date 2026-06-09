@@ -30,6 +30,7 @@ import com.android.launcher3.graphics.ShapeDelegate.Circle
 import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.icons.cache.CachingLogic
 import com.android.launcher3.icons.cache.LauncherActivityCachingLogic
+import com.android.launcher3.icons.ThirdPartyIconProvider
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
@@ -54,7 +55,7 @@ constructor(
     private val iconCacheProvider: Provider<IconCache>,
     pluginManagerWrapper: PluginManagerWrapper,
     lifecycle: DaggerSingletonTracker,
-) : LauncherIconProvider(ctx, themeManager), PluginListener<IconProcessorPlugin> {
+) : ThirdPartyIconProvider(ctx, themeManager), PluginListener<IconProcessorPlugin> {
 
     init {
         pluginManagerWrapper.addPluginListener(this, IconProcessorPlugin::class.java)
@@ -131,7 +132,7 @@ constructor(
     }
 
     override fun notifyIconLoaded(icon: BitmapInfo, key: ComponentKey, logic: CachingLogic<*>) {
-        if (logic == LauncherActivityCachingLogic)
+        if (logic == com.android.launcher3.icons.CustomLauncherActivityCachingLogic.INSTANCE)
             processor?.notifyAppIconLoaded(key.componentName, key.user, icon.flags)
     }
 }

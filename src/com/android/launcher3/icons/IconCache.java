@@ -58,7 +58,7 @@ import com.android.launcher3.icons.cache.BaseIconCache;
 import com.android.launcher3.icons.cache.CacheLookupFlag;
 import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.icons.cache.CachedObjectCachingLogic;
-import com.android.launcher3.icons.cache.LauncherActivityCachingLogic;
+import com.android.launcher3.icons.CustomLauncherActivityCachingLogic;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.IconRequestInfo;
@@ -170,7 +170,7 @@ public class IconCache extends BaseIconCache {
         removeIconsForPkg(packageName, user);
         long userSerial = mUserManager.getSerialNumberForUser(user);
         for (LauncherActivityInfo app : apps) {
-            addIconToDBAndMemCache(app, LauncherActivityCachingLogic.INSTANCE, userSerial);
+            addIconToDBAndMemCache(app, CustomLauncherActivityCachingLogic.INSTANCE, userSerial);
         }
     }
 
@@ -241,7 +241,7 @@ public class IconCache extends BaseIconCache {
      */
     public synchronized void updateTitleAndIcon(AppInfo application) {
         CacheEntry entry = cacheLocked(application.componentName,
-                application.user, () -> null, LauncherActivityCachingLogic.INSTANCE,
+                application.user, () -> null, CustomLauncherActivityCachingLogic.INSTANCE,
                 application.getMatchingLookupFlag());
         if (entry.bitmap != null || !isDefaultIcon(entry.bitmap, application.user)) {
             applyCacheEntry(entry, application);
@@ -391,7 +391,7 @@ public class IconCache extends BaseIconCache {
             @NonNull Supplier<LauncherActivityInfo> activityInfoProvider,
             @NonNull CacheLookupFlag lookupFlag) {
         CacheEntry entry = cacheLocked(infoInOut.getTargetComponent(), infoInOut.user,
-                activityInfoProvider, LauncherActivityCachingLogic.INSTANCE, lookupFlag);
+                activityInfoProvider, CustomLauncherActivityCachingLogic.INSTANCE, lookupFlag);
         applyCacheEntry(entry, infoInOut);
     }
 
@@ -492,7 +492,7 @@ public class IconCache extends BaseIconCache {
                                 cn,
                                 /* user = */ sectionKey.first,
                                 () -> duplicateIconRequests.get(0).launcherActivityInfo,
-                                LauncherActivityCachingLogic.INSTANCE,
+                                CustomLauncherActivityCachingLogic.INSTANCE,
                                 sectionKey.second,
                                 c);
 
@@ -541,7 +541,7 @@ public class IconCache extends BaseIconCache {
                     loadFallbackIcon(
                             lai,
                             entry,
-                            LauncherActivityCachingLogic.INSTANCE,
+                            CustomLauncherActivityCachingLogic.INSTANCE,
                             DEFAULT_LOOKUP_FLAG.withUsePackageIcon(false),
                             /* usePackageTitle= */ loadFallbackTitle,
                             cn,
@@ -551,7 +551,7 @@ public class IconCache extends BaseIconCache {
                     loadFallbackTitle(
                             lai,
                             entry,
-                            LauncherActivityCachingLogic.INSTANCE,
+                            CustomLauncherActivityCachingLogic.INSTANCE,
                             sectionKey.first);
                 }
 
@@ -671,7 +671,7 @@ public class IconCache extends BaseIconCache {
     @VisibleForTesting
     synchronized boolean isItemInDb(ComponentKey cacheKey) {
         return getEntryFromDBLocked(cacheKey, new CacheEntry(), DEFAULT_LOOKUP_FLAG,
-                LauncherActivityCachingLogic.INSTANCE);
+                CustomLauncherActivityCachingLogic.INSTANCE);
     }
 
     /**
