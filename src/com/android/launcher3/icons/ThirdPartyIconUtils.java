@@ -3,11 +3,10 @@ package com.android.launcher3.icons;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 
+import com.android.launcher3.icons.calendar.DateChangeReceiver;
 import com.android.launcher3.icons.pack.IconPackManager;
 import com.android.launcher3.icons.pack.IconResolver;
 import com.android.launcher3.util.ComponentKey;
-
-import com.android.launcher3.icons.calendar.DateChangeReceiver;
 
 class ThirdPartyIconUtils {
     static Drawable getByKey(Context context, ComponentKey key, int iconDpi,

@@ -7,10 +7,13 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.Calendar;
 
 public class DynamicCalendar {
+    private static final String TAG = "DynamicCalendar";
+
     public static final String CALENDAR = "com.google.android.calendar";
 
     public static Drawable load(Context context, ComponentName component, int iconDpi) {
@@ -19,8 +22,8 @@ public class DynamicCalendar {
             Bundle metaData = pm.getActivityInfo(component,
                     PackageManager.GET_META_DATA | PackageManager.GET_UNINSTALLED_PACKAGES).metaData;
 
-            Resources resourcesForApplication = pm.getResourcesForApplication(DynamicCalendar.CALENDAR);
-            int dayResId = DynamicCalendar.getDayResId(metaData, resourcesForApplication);
+            Resources resourcesForApplication = pm.getResourcesForApplication(CALENDAR);
+            int dayResId = getDayResId(metaData, resourcesForApplication);
             if (dayResId != 0) {
                 return resourcesForApplication.getDrawableForDensity(dayResId, iconDpi);
             }
@@ -38,7 +41,8 @@ public class DynamicCalendar {
                     int dateId = dateIds.getResourceId(getDayOfMonth(), 0);
                     dateIds.recycle();
                     return dateId;
-                } catch (Resources.NotFoundException ex) {
+                } catch (Resources.NotFoundException e) {
+                    Log.d(TAG, "Calendar date resource not found", e);
                 }
             }
         }

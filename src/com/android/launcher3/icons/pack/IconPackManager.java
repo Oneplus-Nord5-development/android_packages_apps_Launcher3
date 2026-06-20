@@ -99,18 +99,12 @@ public class IconPackManager extends BroadcastReceiver {
             info.addAll(pm.queryIntentActivities(intent, PackageManager.GET_META_DATA));
         }
 
-        for (String packageName : mProviders.keySet().toArray(new String[0])) {
-            boolean foundPackageName = false;
-            for (ResolveInfo ri : info) {
-                if (ri.activityInfo.packageName.equals(packageName)) {
-                    foundPackageName = true;
-                    break;
-                }
-            }
-            if (!foundPackageName) {
-                mProviders.remove(packageName);
-            }
+        // Remove stale providers no longer matching any icon pack intent
+        Set<String> activePkgs = new HashSet<>();
+        for (ResolveInfo ri : info) {
+            activePkgs.add(ri.activityInfo.packageName);
         }
+        mProviders.keySet().retainAll(activePkgs);
 
         for (ResolveInfo ri : info) {
             String packageName = ri.activityInfo.packageName;
@@ -137,8 +131,11 @@ public class IconPackManager extends BroadcastReceiver {
     }
 
     public boolean packContainsActivity(String packPackage, ComponentName componentName) {
+        IconPack pack = mProviders.get(packPackage);
+        if (pack == null) {
+            return false;
+        }
         try {
-            IconPack pack = mProviders.get(packPackage);
             IconPack.Data data = pack.getData(mContext.getPackageManager());
             return data.drawables.containsKey(componentName);
         } catch (PackageManager.NameNotFoundException | XmlPullParserException | IOException ignored) {

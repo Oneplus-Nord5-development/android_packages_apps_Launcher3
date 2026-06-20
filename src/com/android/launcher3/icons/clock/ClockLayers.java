@@ -20,9 +20,9 @@ class ClockLayers {
     int mDefaultHour;
     int mDefaultMinute;
     int mDefaultSecond;
-    float scale;
-    float offset;
-    Bitmap bitmap;
+    float mScale;
+    float mOffset;
+    Bitmap mBitmap;
 
     ClockLayers() {
         mCurrentTime = Calendar.getInstance();
@@ -35,13 +35,12 @@ class ClockLayers {
 
     @Override
     public ClockLayers clone() {
-        ClockLayers ret = null;
         if (mDrawable == null) {
             return null;
         }
         ClockLayers clone = new ClockLayers();
-        clone.scale = scale;
-        clone.offset = offset;
+        clone.mScale = mScale;
+        clone.mOffset = mOffset;
         clone.mHourIndex = mHourIndex;
         clone.mMinuteIndex = mMinuteIndex;
         clone.mSecondIndex = mSecondIndex;
@@ -49,11 +48,8 @@ class ClockLayers {
         clone.mDefaultMinute = mDefaultMinute;
         clone.mDefaultSecond = mDefaultSecond;
         clone.setDrawable(mDrawable.getConstantState().newDrawable());
-        clone.bitmap = bitmap;
-        if (clone.mLayerDrawable != null) {
-            ret = clone;
-        }
-        return ret;
+        clone.mBitmap = mBitmap;
+        return clone.mLayerDrawable != null ? clone : null;
     }
 
     boolean updateAngles() {

@@ -23,6 +23,7 @@ import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVER
 import static com.android.launcher3.graphics.ShapeDelegate.DEFAULT_PATH_SIZE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
+import static com.android.launcher3.icons.ThirdPartyIconProvider.CONFIG_HINT_NO_WRAP;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_MAIN;
@@ -739,7 +740,7 @@ public final class Utilities {
         AdaptiveIconDrawable result;
         if (mainIcon instanceof AdaptiveIconDrawable aid) {
             result = aid;
-        } else if ((mainIcon.getChangingConfigurations() & com.android.launcher3.icons.ThirdPartyIconProvider.CONFIG_HINT_NO_WRAP) != 0) {
+        } else if ((mainIcon.getChangingConfigurations() & CONFIG_HINT_NO_WRAP) != 0) {
             return null;
         } else {
             // Wrap the main icon in AID

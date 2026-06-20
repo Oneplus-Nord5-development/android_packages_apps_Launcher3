@@ -5,8 +5,6 @@ import android.util.AttributeSet;
 
 import androidx.preference.ListPreference;
 
-import java.util.function.Function;
-
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.THREAD_POOL_EXECUTOR;
 
@@ -40,8 +38,8 @@ public class ReloadingListPreference extends ListPreference {
         super.onClick();
     }
 
-    public void setOnReloadListener(Function<Context, OnReloadListener> supplier) {
-        mOnReloadListener = supplier.apply(getContext());
+    public void setOnReloadListener(OnReloadListener listener) {
+        mOnReloadListener = listener;
         loadEntries(true);
     }
 

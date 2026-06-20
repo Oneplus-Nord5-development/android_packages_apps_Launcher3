@@ -8,9 +8,9 @@ import android.os.UserHandle;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.pack.IconResolver;
 import com.android.launcher3.util.ComponentKey;
+
 public class ThirdPartyIconProvider extends LauncherIconProvider {
     public static final int CONFIG_HINT_NO_WRAP = 1 << 30;
-
 
     public ThirdPartyIconProvider(Context context, ThemeManager themeManager) {
         super(context, themeManager);

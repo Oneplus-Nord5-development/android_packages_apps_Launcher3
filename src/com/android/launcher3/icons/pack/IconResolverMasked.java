@@ -1,6 +1,5 @@
 package com.android.launcher3.icons.pack;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -14,6 +13,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 import com.android.launcher3.icons.BaseIconFactory;
 import com.android.launcher3.icons.LauncherIcons;
@@ -21,6 +21,8 @@ import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.icons.clock.CustomClock;
 
 public class IconResolverMasked implements IconResolver {
+    private static final String TAG = "IconResolverMasked";
+
     private final Context mContext;
     private final IconPack.Data mData;
     private final ApplicationInfo mPackInfo;
@@ -56,10 +58,8 @@ public class IconResolverMasked implements IconResolver {
     public Drawable getIcon(int iconDpi, DefaultDrawableProvider fallback) {
         Drawable icon = fallback.get();
 
-        LauncherIcons li = LauncherIcons.obtain(mContext);
-        PackageManager pm = mContext.getPackageManager();
-        try {
-            Resources res = pm.getResourcesForApplication(mPackInfo);
+        try (LauncherIcons li = LauncherIcons.obtain(mContext)) {
+            Resources res = mContext.getPackageManager().getResourcesForApplication(mPackInfo);
 
             Bitmap iconBm = li.createScaledBitmap(icon, BaseIconFactory.MODE_WITH_SHADOW);
             mCanvas.setBitmap(iconBm);
@@ -83,24 +83,22 @@ public class IconResolverMasked implements IconResolver {
                 uponBitmap(iconBm, res.getDrawableForDensity(iconUpon, iconDpi, null));
             }
 
-            li.recycle();
             return new BitmapDrawable(mContext.getResources(), iconBm);
         } catch (PackageManager.NameNotFoundException | Resources.NotFoundException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to load masked icon", e);
         }
 
-        li.recycle();
         return icon;
     }
 
     private void scaleBitmap(Bitmap bitmap, float scale) {
         if (scale != 1f) {
             Bitmap iconBmScaled = Bitmap.createScaledBitmap(bitmap,
-                    (int)(bitmap.getWidth() * mData.scale),
-                    (int)(bitmap.getHeight() * mData.scale),
+                    (int)(bitmap.getWidth() * scale),
+                    (int)(bitmap.getHeight() * scale),
                     true);
 
-            float move = 0.5f * (1f - mData.scale);
+            float move = 0.5f * (1f - scale);
 
             Matrix matrix = new Matrix();
             matrix.postTranslate(move * bitmap.getWidth(), move * bitmap.getHeight());

@@ -29,7 +29,7 @@ import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.graphics.ShapeDelegate.Circle
 import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.icons.cache.CachingLogic
-import com.android.launcher3.icons.cache.LauncherActivityCachingLogic
+import com.android.launcher3.icons.CustomLauncherActivityCachingLogic
 import com.android.launcher3.icons.ThirdPartyIconProvider
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.DaggerSingletonTracker
@@ -132,7 +132,7 @@ constructor(
     }
 
     override fun notifyIconLoaded(icon: BitmapInfo, key: ComponentKey, logic: CachingLogic<*>) {
-        if (logic == com.android.launcher3.icons.CustomLauncherActivityCachingLogic.INSTANCE)
+        if (logic == CustomLauncherActivityCachingLogic.INSTANCE)
             processor?.notifyAppIconLoaded(key.componentName, key.user, icon.flags)
     }
 }

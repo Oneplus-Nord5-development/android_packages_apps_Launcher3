@@ -16,14 +16,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 
-import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
+import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
-import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.LauncherAppState;
-import com.android.launcher3.icons.BaseIconFactory.IconOptions;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.LauncherIcons;
+import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.util.Preconditions;
 
 import java.util.Collections;
@@ -31,7 +30,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.WeakHashMap;
 
-@TargetApi(26)
+@TargetApi(Build.VERSION_CODES.O)
 public class DynamicClock extends BroadcastReceiver {
     public static final ComponentName DESK_CLOCK = new ComponentName(
             "com.google.android.deskclock",
@@ -93,10 +92,10 @@ public class DynamicClock extends BroadcastReceiver {
                     layers.mDefaultSecond = metaData.getInt("com.google.android.apps.nexuslauncher.DEFAULT_SECOND", 0);
                     if (normalizeIcon) {
                         LauncherIcons obtain = LauncherIcons.obtain(context);
-                        layers.bitmap = obtain.createBadgedIconBitmap(
+                        layers.mBitmap = obtain.createBadgedIconBitmap(
                                 new AdaptiveIconDrawable(layers.mDrawable.getBackground().getConstantState().newDrawable(), null)).icon;
                         int iconBitmapSize = LauncherAppState.getInstance(context).getInvariantDeviceProfile().iconBitmapSize;
-                        layers.offset = (int) Math.ceil((double) (0.010416667f * ((float) iconBitmapSize)));
+                        layers.mOffset = (int) Math.ceil((double) (0.010416667f * ((float) iconBitmapSize)));
                         obtain.recycle();
                     }
 

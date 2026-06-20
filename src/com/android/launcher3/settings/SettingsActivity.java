@@ -408,7 +408,7 @@ public class SettingsActivity extends FragmentActivity
                 case KEY_ICON_PACK:
                     ReloadingListPreference iconPackPref = (ReloadingListPreference) preference;
                     iconPackPref.setValue(IconDatabase.getGlobal(getActivity()));
-                    iconPackPref.setOnReloadListener(IconPackPrefSetter::new);
+                    iconPackPref.setOnReloadListener(new IconPackPrefSetter(getActivity()));
                     iconPackPref.setOnPreferenceChangeListener((pref, val) -> {
                         IconDatabase.clearAll(getActivity());
                         IconDatabase.setGlobal(getActivity(), (String) val);

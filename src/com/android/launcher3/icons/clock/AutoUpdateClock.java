@@ -18,6 +18,8 @@ import com.android.launcher3.model.data.ItemInfoWithIcon;
 import java.util.TimeZone;
 
 class AutoUpdateClock implements Runnable {
+    private static final long MILLIS_IN_SECOND = 1000L;
+
     private final FastBitmapDrawable mDrawable;
     private ClockLayers mLayers;
     private ClockDelegate mDelegate;
@@ -37,35 +39,10 @@ class AutoUpdateClock implements Runnable {
         return mDrawable;
     }
 
-    public void setBounds(Rect bounds) {
-        mDrawable.setBounds(bounds);
-    }
-
-    public Rect getBounds() {
-        return mDrawable.getBounds();
-    }
-
-    public void invalidateSelf() {
-        mDrawable.invalidateSelf();
-    }
-
-    public void scheduleSelf(Runnable what, long when) {
-        mDrawable.scheduleSelf(what, when);
-    }
-
-    public void unscheduleSelf(Runnable what) {
-        mDrawable.unscheduleSelf(what);
-    }
-
-    public void setDisabled(boolean disabled) {
-        mDrawable.setDisabled(disabled);
-    }
-
     private void rescheduleUpdate() {
-        long millisInSecond = 1000L;
-        unscheduleSelf(this);
+        mDrawable.unscheduleSelf(this);
         long uptimeMillis = SystemClock.uptimeMillis();
-        scheduleSelf(this, uptimeMillis - uptimeMillis % millisInSecond + millisInSecond);
+        mDrawable.scheduleSelf(this, uptimeMillis - uptimeMillis % MILLIS_IN_SECOND + MILLIS_IN_SECOND);
     }
 
     void updateLayers(ClockLayers layers) {
@@ -77,24 +54,24 @@ class AutoUpdateClock implements Runnable {
                     mDelegate.updateLayers(newLayers);
                 }
                 if (newLayers.mDrawable != null) {
-                    newLayers.mDrawable.setBounds(getBounds());
+                    newLayers.mDrawable.setBounds(mDrawable.getBounds());
                 }
             }
         }
-        invalidateSelf();
+        mDrawable.invalidateSelf();
     }
 
     void setTimeZone(TimeZone timeZone) {
         if (mLayers != null) {
             mLayers.setTimeZone(timeZone);
-            invalidateSelf();
+            mDrawable.invalidateSelf();
         }
     }
 
     @Override
     public void run() {
         if (mLayers != null && mLayers.updateAngles()) {
-            invalidateSelf();
+            mDrawable.invalidateSelf();
         } else {
             rescheduleUpdate();
         }
@@ -117,11 +94,11 @@ class AutoUpdateClock implements Runnable {
         public void drawContent(@NonNull BitmapInfo info, @NonNull IconShape shape,
                 @NonNull Canvas canvas, @NonNull Rect bounds, @NonNull Paint paint) {
             if (mLayers != null) {
-                canvas.drawBitmap(mLayers.bitmap, null, bounds, paint);
+                canvas.drawBitmap(mLayers.mBitmap, null, bounds, paint);
                 mLayers.updateAngles();
-                canvas.scale(mLayers.scale, mLayers.scale,
-                        bounds.exactCenterX() + mLayers.offset,
-                        bounds.exactCenterY() + mLayers.offset);
+                canvas.scale(mLayers.mScale, mLayers.mScale,
+                        bounds.exactCenterX() + mLayers.mOffset,
+                        bounds.exactCenterY() + mLayers.mOffset);
                 canvas.clipPath(mLayers.mDrawable.getIconMask());
                 mLayers.mDrawable.getForeground().draw(canvas);
                 mHost.rescheduleUpdate();

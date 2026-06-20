@@ -12,10 +12,10 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.android.launcher3.icons.FastBitmapDrawable;
-import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.LauncherIcons;
+import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.util.Preconditions;
 
 import java.util.Collections;
@@ -62,14 +62,14 @@ public class CustomClock {
         layers.mDefaultSecond = metadata.DEFAULT_SECOND;
         if (normalizeIcon) {
             LauncherIcons obtain = LauncherIcons.obtain(context);
-            layers.bitmap = obtain.createBadgedIconBitmap(
+            layers.mBitmap = obtain.createBadgedIconBitmap(
                     new AdaptiveIconDrawable(
                             layers.mDrawable.getBackground().getConstantState().newDrawable(),
                             null)).icon;
 
             int iconBitmapSize = LauncherAppState.getInstance(context)
                     .getInvariantDeviceProfile().iconBitmapSize;
-            layers.offset = (int) Math.ceil((double) (0.010416667f * ((float) iconBitmapSize)));
+            layers.mOffset = (int) Math.ceil((double) (0.010416667f * ((float) iconBitmapSize)));
             obtain.recycle();
         }
 
