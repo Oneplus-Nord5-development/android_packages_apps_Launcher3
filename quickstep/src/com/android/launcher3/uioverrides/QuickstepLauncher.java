@@ -571,6 +571,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 || container == CONTAINER_ALL_APPS_PREDICTION)) {
             shortcuts.add(ADD_TO_HOME_SCREEN);
         }
+        shortcuts.add(UNINSTALL_APP);
         if (container == CONTAINER_DESKTOP || container == CONTAINER_HOTSEAT) {
             shortcuts.add(ENLARGE);
             shortcuts.add(MINIMIZE);
@@ -578,9 +579,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
         shortcuts.add(DONT_SUGGEST_APP);
         shortcuts.add(PRIVATE_PROFILE_INSTALL);
-        if (Flags.enablePrivateSpace()) {
-            shortcuts.add(UNINSTALL_APP);
-        }
         if (BubbleAnythingFlagHelper.enableCreateAnyBubble()) {
             shortcuts.add(BUBBLE_SHORTCUT);
         }
