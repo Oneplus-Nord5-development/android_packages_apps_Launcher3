@@ -1797,7 +1797,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 dragOptions.preDragEndScale = (float) mAllAppsIconSize / btv.getIconSize();
             }
         } else if (Flags.homeScreenEditImprovements() && child instanceof Poppable
-                && !dragOptions.isAccessibleDrag) {
+                && !dragOptions.isAccessibleDrag && dragOptions.preDragCondition == null) {
             Popup popup = mLauncher.getPopupControllerForHomeScreenItems()
                     .show(child);
             if (popup != null) {

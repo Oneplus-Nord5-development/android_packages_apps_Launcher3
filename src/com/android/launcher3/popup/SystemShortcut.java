@@ -203,7 +203,13 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
         }
     }
 
-    public static final Factory<ActivityContext> APP_INFO = AppInfo::new;
+    public static final Factory<ActivityContext> APP_INFO =
+            (context, itemInfo, originalView) -> {
+                if (itemInfo == null || itemInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER) {
+                    return null;
+                }
+                return new AppInfo<>(context, itemInfo, originalView);
+            };
 
     public static class AppInfo<T extends ActivityContext> extends SystemShortcut<T> {
 
@@ -799,20 +805,26 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                         int countX = layout.getCountX();
                         int countY = layout.getCountY();
 
-                        if (cellX + 1 < countX && cellY + 1 < countY) {
-                            boolean right = layout.isRegionVacant(cellX + 1, cellY, 1, 1);
-                            boolean bottom = layout.isRegionVacant(cellX, cellY + 1, 1, 1);
-                            boolean diag = layout.isRegionVacant(cellX + 1, cellY + 1, 1, 1);
-
-                            Log.d(TAG, "Checking Enlarge for " + itemInfo.title + " at (" + cellX + "," + cellY + ")" +
-                                    " right=" + right + " bottom=" + bottom + " diag=" + diag);
-
-                            if (right && bottom && diag) {
-                                isVacant = true;
-                            }
-                        } else {
-                            Log.d(TAG, "Checking Enlarge for " + itemInfo.title + " at (" + cellX + "," + cellY + ")" +
-                                    " failed boundary check: " + (cellX+1) + "<" + countX + " && " + (cellY+1) + "<" + countY);
+                        if (cellX + 1 < countX && cellY + 1 < countY
+                                && layout.isRegionVacant(cellX + 1, cellY, 1, 1)
+                                && layout.isRegionVacant(cellX, cellY + 1, 1, 1)
+                                && layout.isRegionVacant(cellX + 1, cellY + 1, 1, 1)) {
+                            isVacant = true;
+                        } else if (cellX > 0 && cellY + 1 < countY
+                                && layout.isRegionVacant(cellX - 1, cellY, 1, 1)
+                                && layout.isRegionVacant(cellX - 1, cellY + 1, 1, 1)
+                                && layout.isRegionVacant(cellX, cellY + 1, 1, 1)) {
+                            isVacant = true;
+                        } else if (cellY > 0 && cellX + 1 < countX
+                                && layout.isRegionVacant(cellX, cellY - 1, 1, 1)
+                                && layout.isRegionVacant(cellX + 1, cellY - 1, 1, 1)
+                                && layout.isRegionVacant(cellX + 1, cellY, 1, 1)) {
+                            isVacant = true;
+                        } else if (cellX > 0 && cellY > 0
+                                && layout.isRegionVacant(cellX - 1, cellY - 1, 1, 1)
+                                && layout.isRegionVacant(cellX, cellY - 1, 1, 1)
+                                && layout.isRegionVacant(cellX - 1, cellY, 1, 1)) {
+                            isVacant = true;
                         }
 
                         if (!isVacant) {

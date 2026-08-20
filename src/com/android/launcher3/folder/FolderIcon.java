@@ -847,11 +847,12 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
             openPopup.close(false);
         }
         mFolderName.setTag(mInfo);
+        View anchor = mFolderName.getVisibility() == VISIBLE ? mFolderName : this;
         PopupContainerWithArrow<Launcher> popup =
                 PopupContainerWithArrow.<Launcher>create(
-                        mFolderName.getContext(), mFolderName, mInfo, true);
+                        getContext(), anchor, mInfo, true);
         List<SystemShortcut<?>> systemShortcuts = launcher.getSupportedShortcuts(mInfo)
-                .map(s -> (SystemShortcut<?>) s.getShortcut(launcher, mInfo, mFolderName))
+                .map(s -> (SystemShortcut<?>) s.getShortcut(launcher, mInfo, this))
                 .filter(s -> s != null)
                 .collect(Collectors.toList());
         popup.populateAndShowRows(0, systemShortcuts);

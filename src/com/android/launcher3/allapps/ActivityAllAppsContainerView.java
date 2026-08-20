@@ -33,6 +33,7 @@ import static com.android.launcher3.views.RecyclerViewFastScroller.FastScrollerL
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.content.ComponentName;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -128,8 +129,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     protected final T mActivityContext;
     protected final List<AdapterHolder> mAH;
-    protected final Predicate<ItemInfo> mPersonalMatcher = ItemInfoMatcher.ofUser(
-            Process.myUserHandle());
+    protected final Predicate<ItemInfo> mPersonalMatcher;
     protected WorkProfileManager mWorkManager;
     protected final PrivateProfileManager mPrivateProfileManager;
     protected final Point mFastScrollerOffset = new Point();
@@ -199,6 +199,20 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         super(context, attrs, defStyleAttr);
         mActivityContext = ActivityContext.lookupContext(context);
         mAllAppsStore = mActivityContext.getActivityComponent().getAppsStore();
+        mPersonalMatcher = item -> {
+            if (item == null) {
+                return false;
+            }
+            if (item.user.equals(Process.myUserHandle())) {
+                return true;
+            }
+            UserCache userCache = UserCache.INSTANCE.get(mActivityContext);
+            if (userCache.getUserInfo(item.user).isCloned()) {
+                ComponentName cn = item.getTargetComponent();
+                return cn != null && !userCache.getPreInstallApps(item.user).contains(cn.getPackageName());
+            }
+            return false;
+        };
 
         mScrimColor = Themes.getAttrColor(context, R.attr.allAppsScrimColor);
         mHeaderThreshold = getResources().getDimensionPixelSize(

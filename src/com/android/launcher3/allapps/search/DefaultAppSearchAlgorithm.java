@@ -27,6 +27,7 @@ import androidx.annotation.AnyThread;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.allapps.BaseAllAppsAdapter.AdapterItem;
 import com.android.launcher3.model.data.AppInfo;
+import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.search.SearchAlgorithm;
 import com.android.launcher3.search.SearchCallback;
 import com.android.launcher3.search.StringMatcherUtility;
@@ -99,10 +100,18 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
         int resultCount = 0;
         int total = apps.size();
         UserManager userManager = UserManager.get(context);
+        UserCache userCache = UserCache.INSTANCE.get(context);
         for (int i = 0; i < total && resultCount < MAX_RESULTS_COUNT; i++) {
             AppInfo info = apps.get(i);
             if (userManager.isQuietModeEnabled(info.user)) {
                 continue;
+            }
+            if (userCache.getUserInfo(info.user).isCloned()) {
+                if (info.getTargetComponent() == null
+                        || userCache.getPreInstallApps(info.user).contains(
+                                info.getTargetComponent().getPackageName())) {
+                    continue;
+                }
             }
             if (StringMatcherUtility.matches(queryTextLower, info.title.toString(), matcher)) {
                 result.add(AdapterItem.asApp(info));
